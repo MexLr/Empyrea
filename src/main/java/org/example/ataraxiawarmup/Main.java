@@ -64,14 +64,17 @@ public class Main extends JavaPlugin {
             playerStats.put(player.getUniqueId(), stats);
         }
 
-        TestItem testItem = new TestItem();
-        TestIngredient testIngredient = new TestIngredient();
+        TestIngredient testIngredient = new TestIngredient(CustomItemType.BLAZE_POWDER, "Test Ingredient", Rarity.EPIC, null);
+        TestItem testItem = new TestItem(CustomItemType.BLAZE_ROD, "Test Item", Rarity.LOVECRAFTIAN, new CustomItemStack[]
+                {null, new CustomItemStack(testIngredient, 3), null,
+                new CustomItemStack(testIngredient, 3), null, new CustomItemStack(testIngredient, 3),
+                null, new CustomItemStack(testIngredient, 3), null});
 
         for (CustomItem item : CustomItem.CUSTOM_ITEMS.values()) {
-            item.initialize();
+            item.createRecipe();
         }
 
-        this.instance = this;
+        instance = this;
     }
 
     @Override

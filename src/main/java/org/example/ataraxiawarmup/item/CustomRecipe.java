@@ -20,8 +20,8 @@ public class CustomRecipe {
     public CustomRecipe(CustomItemStack[] matrix, CustomItemStack result) {
         this.recipeMatrix = matrix;
         this.result = result;
-        this.NAME_MAP.put(ChatColor.stripColor(result.getItemMeta().getDisplayName()).toLowerCase(), matrix);
-        this.RECIPE_MAP.put(matrix, result);
+        NAME_MAP.put(ChatColor.stripColor(result.getItemMeta().getDisplayName()).toLowerCase(), matrix);
+        RECIPE_MAP.put(matrix, result);
         Bukkit.getPlayer("MexLr").sendMessage(ChatColor.stripColor(result.getItemMeta().getDisplayName()).toLowerCase());
     }
 
@@ -71,57 +71,3 @@ public class CustomRecipe {
         return this.result;
     }
 }
-
-/**
-public class CustomRecipe {
-
-    private static final Map<String, CustomItemStack[]> NAME_MAP = new HashMap<>();
-    private static final Map<CustomItemStack[], CustomItemStack> RECIPE_MAP = new HashMap<>();
-
-    static {
-        for (CustomItem type : CustomItem.values()) {
-            if (type.getRecipe() != null) {
-                NAME_MAP.put(ChatColor.stripColor(type.getName()).toLowerCase(), type.getRecipe());
-                RECIPE_MAP.put(type.getRecipe(), type.toCustomItemStack());
-            }
-        }
-    }
-
-    public static CustomItemStack[] fromName(String name) {
-        if (name == null || !NAME_MAP.containsKey(ChatColor.stripColor(name.toLowerCase()))) {
-            return null;
-        }
-        return NAME_MAP.get(ChatColor.stripColor(name.toLowerCase()));
-    }
-
-    public static ItemStack findMatch(CustomItemStack[] recipe) {
-        if (recipe == null) {
-            return null;
-        }
-        for (CustomItemStack[] key : RECIPE_MAP.keySet()) {
-            if (key == null) {
-                continue;
-            }
-            int successes = 0;
-            for (int i = 0; i < key.length; i++) {
-                if (key[i] == null && recipe[i] == null) {
-                    successes++;
-                    continue;
-                }
-                if (key[i] == null || recipe[i] == null) {
-                    break;
-                }
-                if (key[i].isLess(recipe[i])) {
-                    successes++;
-                } else {
-                    break;
-                }
-            }
-            if (successes == 9) {
-                return RECIPE_MAP.get(key).toItemStack();
-            }
-        }
-        return null;
-    }
-}
-*/
