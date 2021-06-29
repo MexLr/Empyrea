@@ -1,0 +1,16 @@
+name: AtaraxiaWarmup
+version: 1.0.0
+author: MexLr
+main: org.example.ataraxiawarmup.Main
+api-version: 1.17
+commands:
+  item:
+    aliases: [i, giveitem]
+  spawner:
+    aliases: []
+  spawnentity:
+    aliases: [spawnmob]
+  trailapplier:
+    aliases: [proj, projectile, projectiletrail, projectiletrailapplier, projapplier, projectileapplier, projtrailapplier]
+  craft:
+    aliases: []

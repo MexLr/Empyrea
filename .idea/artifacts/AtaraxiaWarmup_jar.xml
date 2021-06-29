@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="AtaraxiaWarmup:jar">
+    <output-path>$PROJECT_DIR$/../../Games/IDK SERVER/plugins</output-path>
+    <root id="archive" name="AtaraxiaWarmup.jar">
+      <element id="module-output" name="AtaraxiaWarmup" />
+    </root>
+  </artifact>
+</component>
