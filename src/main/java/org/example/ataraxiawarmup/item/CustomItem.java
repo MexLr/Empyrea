@@ -1,5 +1,6 @@
 package org.example.ataraxiawarmup.item;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -12,15 +13,15 @@ public abstract class CustomItem {
 
     public static final Map<String, CustomItem> CUSTOM_ITEMS = new HashMap<>();
 
-    private final ItemMeta meta = new ItemStack(Material.BARRIER).getItemMeta();
-    private final CustomItemType type;
+    private final Material material;
     private final String name;
     private final Rarity rarity;
+    private ItemMeta meta = new ItemStack(Material.BARRIER).getItemMeta();
     private CustomRecipe recipe;
     private CustomItemStack[] recipeMatrix;
 
-    public CustomItem(CustomItemType type, String name, Rarity rarity, CustomItemStack[] recipeMatrix) {
-        this.type = type;
+    public CustomItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix) {
+        this.material = material;
         this.name = name;
         this.rarity = rarity;
         this.recipeMatrix = recipeMatrix;
@@ -30,8 +31,6 @@ public abstract class CustomItem {
         lore.add("");
         lore.add(this.rarity.getLore());
         this.meta.setLore(lore);
-
-        CUSTOM_ITEMS.put(ChatColor.stripColor(getItemMeta().getDisplayName()).toLowerCase(), this);
     }
 
     /**
@@ -64,7 +63,7 @@ public abstract class CustomItem {
      * @return - ItemStack of CustomItem
      */
     public ItemStack toItemStack() {
-        ItemStack item = new ItemStack(this.type.getMaterial());
+        ItemStack item = new ItemStack(this.material);
         ItemMeta itemMeta = this.meta;
         item.setItemMeta(itemMeta);
         return item;
@@ -77,7 +76,7 @@ public abstract class CustomItem {
      * @return - ItemStack of CustomItem with a specified amount
      */
     public ItemStack toItemStack(int amount) {
-        ItemStack item = new ItemStack(this.type.getMaterial(), amount);
+        ItemStack item = new ItemStack(this.material, amount);
         ItemMeta itemMeta = this.meta;
         item.setItemMeta(itemMeta);
         return item;
@@ -111,12 +110,12 @@ public abstract class CustomItem {
     }
 
     /**
-     * Returns the CustomItemType of this item
+     * Returns the Material of this item
      *
-     * @return - The CustomItemType of this item
+     * @return - The Material of this item
      */
-    public CustomItemType getType() {
-        return this.type;
+    public Material getMaterial() {
+        return this.material;
     }
 
     /**
@@ -129,12 +128,21 @@ public abstract class CustomItem {
     };
 
     /**
+     * Sets the item meta of the item.
+     *
+     * @param meta - New meta to set the item's ItemMeta to
+     */
+    public void setItemMeta(ItemMeta meta) {
+        this.meta = meta;
+    }
+
+    /**
      * Gets a CustomItem by name
      *
      * @param name - The name of the CustomItem that is being searched for
      * @return - The CustomItem, or null if there is no CustomItem with the name
      */
-    public static CustomItem itemFromName(String name) {
+    public static CustomItem fromName(String name) {
         return CUSTOM_ITEMS.get(ChatColor.stripColor(name).toLowerCase());
     }
 }

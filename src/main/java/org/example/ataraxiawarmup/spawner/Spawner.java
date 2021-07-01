@@ -4,11 +4,11 @@ package org.example.ataraxiawarmup.spawner;
 import org.example.ataraxiawarmup.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
+import org.example.ataraxiawarmup.mob.CustomMob;
 
 public class Spawner {
 
-    private EntityType mobType;
+    private CustomMob mob;
     private double interval;
     private boolean isActive = true;
     private Location location;
@@ -16,7 +16,7 @@ public class Spawner {
     private Main plugin;
 
     public Spawner(Main plugin, Location location) {
-        this.mobType = EntityType.ZOMBIE;
+        this.mob = CustomMob.fromName("1Spider");
         this.interval = 10.0;
         this.location = location;
         this.plugin = plugin;
@@ -25,12 +25,12 @@ public class Spawner {
     /**
      * Constructor that takes a mob type and interval in seconds
      *
-     * @param type - The type of mob the org.example.ataraxiawarmup.spawner spawns
+     * @param mob - The CustomMob the spawner spawns
      * @param interval - The interval between each spawn cycle, in seconds
-     * @param location - The location of the org.example.ataraxiawarmup.spawner.
+     * @param location - The location of the spawner.
      */
-    public Spawner(EntityType type, double interval, Location location, Main plugin) {
-        this.mobType = type;
+    public Spawner(CustomMob mob, double interval, Location location, Main plugin) {
+        this.mob = mob;
         this.interval = interval;
         this.location = location;
         this.plugin = plugin;
@@ -39,7 +39,7 @@ public class Spawner {
     public void spawnMob() {
         if (!isActive)
             return;
-        // Get a randomized location around the org.example.ataraxiawarmup.spawner's location
+        // Get a randomized location around the spawner's location
         Location spawnLocation = location.clone();
 
         double min = -5;
@@ -52,7 +52,7 @@ public class Spawner {
         spawnLocation.add(xRandom, 0, zRandom);
 
         // Spawn the entity at the new location
-        location.getWorld().spawnEntity(spawnLocation, mobType);
+        this.mob.clone().spawn(spawnLocation);
     }
 
     public void startSpawning() {
@@ -70,8 +70,8 @@ public class Spawner {
      * @return - the org.example.ataraxiawarmup.spawner's mobType.
      */
 
-    public EntityType getMobType() {
-        return this.mobType;
+    public CustomMob getMobType() {
+        return this.mob;
     }
 
     /**
@@ -88,9 +88,9 @@ public class Spawner {
      *
      * @param type - The mob type the org.example.ataraxiawarmup.spawner's spawn type is set to.
      */
-    public void setMobType(EntityType type) {
+    public void setMobType(CustomMob type) {
         if (type != null)
-            this.mobType = type;
+            this.mob = type;
     }
 
     /**

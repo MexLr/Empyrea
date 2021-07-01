@@ -24,6 +24,7 @@ public class RecipeListener implements Listener {
     public void onPlayerClickInInventory(InventoryClickEvent event) {
         if (event.getView().getTitle().equalsIgnoreCase("Crafting Table")) {
             CraftingInventory craftingInventory = new CraftingInventory();
+            CustomItemStack[] previousItems = craftingInventory.getCustomMatrix(event.getInventory()); // this prevents the dupe glitch caused by fixing shift clicking an item into the output slot; before it would check to see if the recipe was valid a tick later than it should have
             if (event.getSlot() == event.getRawSlot()) {
                 if (event.getInventory().getItem(event.getSlot()) != null) {
                     if (event.getInventory().getItem(event.getSlot()).getType().equals(Material.GRAY_STAINED_GLASS_PANE) || event.getInventory().getItem(event.getSlot()).getType().equals(Material.BARRIER)) {
@@ -48,7 +49,7 @@ public class RecipeListener implements Listener {
                         } else {
                             savedItem = null;
                         }
-                        CustomItemStack[] recipe = CustomRecipe.fromName(event.getInventory().getItem(24).getItemMeta().getDisplayName());
+                        CustomItemStack[] recipe = CustomRecipe.fromName(event.getInventory().getItem(24).getItemMeta().getDisplayName()).getMatrix();
 
                         for (int i = 0; i < items1.length; i++) {
                             if (items1[i] != null) {
@@ -70,7 +71,7 @@ public class RecipeListener implements Listener {
                 } else if (event.getSlot() == 24 && event.getInventory().getItem(24) != null && event.getClick().equals(ClickType.SHIFT_LEFT)) {
                     if (event.getCursor().getType().equals(event.getInventory().getItem(24).getType()) && event.getCursor().getItemMeta().equals(event.getInventory().getItem(24).getItemMeta()) || event.getCursor().getType().equals(Material.AIR)) {
                         CustomItemStack[] items = craftingInventory.getCustomMatrix(event.getInventory());
-                        CustomItemStack[] recipe = CustomRecipe.fromName(event.getInventory().getItem(24).getItemMeta().getDisplayName());
+                        CustomItemStack[] recipe = CustomRecipe.fromName(event.getInventory().getItem(24).getItemMeta().getDisplayName()).getMatrix();
 
                         ItemStack[] items1 = craftingInventory.getMatrix(event.getInventory());
 
@@ -89,9 +90,22 @@ public class RecipeListener implements Listener {
                     }
                     return;
                 }
+            } else {
+                if (event.getClick().equals(ClickType.SHIFT_LEFT)) {
+                    if (event.getInventory().getItem(24) != null && event.getCurrentItem() != null) {
+                        if (event.getInventory().getItem(24).isSimilar(event.getCurrentItem())) {
+                            event.setCancelled(true);
+                        }
+                    }
+                }
             }
             Bukkit.getScheduler().runTask(plugin, () -> {
                 CustomItemStack[] items = craftingInventory.getCustomMatrix(event.getInventory());
+
+                if (event.getInventory().getItem(24) != null && CustomRecipe.getResult(previousItems) == null) {
+                    event.getWhoClicked().getInventory().addItem(event.getInventory().getItem(24));
+                    event.getInventory().setItem(24, new ItemStack(Material.AIR));
+                }
 
                 if (CustomRecipe.getResult(items) != null) {
                     event.getInventory().setItem(24, CustomRecipe.getResult(items).toItemStack());

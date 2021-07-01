@@ -1,20 +1,12 @@
 package org.example.ataraxiawarmup;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.entity.CreatureSpawnEvent;
-import org.example.ataraxiawarmup.item.CraftingInventory;
-import org.example.ataraxiawarmup.item.CustomItem;
-import org.example.ataraxiawarmup.item.CustomItemStack;
-import org.example.ataraxiawarmup.item.CustomItemType;
-import org.example.ataraxiawarmup.mob.CustomSkeleton;
-import org.example.ataraxiawarmup.mob.CustomZombie;
+import org.example.ataraxiawarmup.item.*;
+import org.example.ataraxiawarmup.mob.CustomMob;
 import org.example.ataraxiawarmup.projectiletrail.ProjectileTrailApplierInventory;
 import org.example.ataraxiawarmup.spawner.SpawnerItem;
 
@@ -29,6 +21,8 @@ public class CommandListener implements CommandExecutor {
         plugin.getCommand("spawnentity").setExecutor(this);
         plugin.getCommand("trailapplier").setExecutor(this);
         plugin.getCommand("craft").setExecutor(this);
+        plugin.getCommand("ingredientsfor").setExecutor(this);
+        plugin.getCommand("viewrecipe").setExecutor(this);
     }
 
     @Override
@@ -43,6 +37,10 @@ public class CommandListener implements CommandExecutor {
             return handleOpenTrailApplyInventory(sender, args);
         if (cmd.getName().equalsIgnoreCase("craft"))
             return handleOpenCraftingInventory(sender, args);
+        if (cmd.getName().equalsIgnoreCase("ingredientsfor"))
+            return handleListIngredientsForRecipe(sender, args);
+        if (cmd.getName().equalsIgnoreCase("viewrecipe"))
+            return handleViewRecipe(sender, args);
         return false;
     }
 
@@ -63,8 +61,8 @@ public class CommandListener implements CommandExecutor {
 
             switch (args[0]) {
                 case "SPAWNER":
-                    SpawnerItem spawnerItem = new SpawnerItem(EntityType.ZOMBIE, 5);
-                    player.getInventory().addItem(spawnerItem.getItem());
+                    SpawnerItem spawnerItem = new SpawnerItem(CustomMob.fromName("1Spider"), 5);
+                    player.getInventory().addItem(spawnerItem.toItemStack());
                 default:
                     break;
             }
@@ -76,11 +74,12 @@ public class CommandListener implements CommandExecutor {
                 input += " " + word;
             }
             input = input.trim();
-            if (CustomItem.itemFromName(input) != null) {
+
+            if (CustomItem.fromName(input) != null) {
                 if (args.length > 1) {
-                    player.getInventory().addItem(new CustomItemStack(CustomItem.itemFromName(input), Integer.parseInt(args[1])).toItemStack());
+                    player.getInventory().addItem(new CustomItemStack(CustomItem.fromName(input), Integer.parseInt(args[1])).toItemStack());
                 } else {
-                    player.getInventory().addItem(new CustomItemStack(CustomItem.itemFromName(input)).toItemStack());
+                    player.getInventory().addItem(new CustomItemStack(CustomItem.fromName(input)).toItemStack());
                 }
             }
         }
@@ -92,7 +91,7 @@ public class CommandListener implements CommandExecutor {
             Player player = (Player) sender;
 
             if (args.length < 1) {
-                player.sendMessage("§cPlease specify a valid EntityType!");
+                player.sendMessage("§cPlease specify a valid CustomEntityType!");
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
                 return false;
             }
@@ -102,10 +101,15 @@ public class CommandListener implements CommandExecutor {
                 return false;
             }
 
-            EntityType type = EntityType.valueOf(args[0].toUpperCase());
+            CustomMob type = CustomMob.fromName(args[0]);
+            if (type == null) {
+                player.sendMessage("§cPlease specify a valid CustomMob!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
             double interval = Double.parseDouble(args[1]);
 
-            player.getInventory().addItem(new SpawnerItem(type, interval).getItem());
+            player.getInventory().addItem(new SpawnerItem(type, interval).toItemStack());
         }
         return true;
     }
@@ -115,17 +119,25 @@ public class CommandListener implements CommandExecutor {
             Player player = (Player) sender;
 
             if (args.length < 1) {
-                player.sendMessage("§cPlease specify a valid entity to spawn!");
+                player.sendMessage("§cPlease specify a valid mob to spawn!");
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
                 return false;
             }
 
-            switch (args[0]) {
-                default:
-                    CustomSkeleton customSkeleton = new CustomSkeleton(player.getLocation());
-                    ((CraftWorld)player.getWorld()).getHandle().addEntity(customSkeleton, CreatureSpawnEvent.SpawnReason.CUSTOM);
-                    break;
+            if (args.length < 2) {
+                player.sendMessage("§cPlease specify a valid level of the mob!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
             }
+
+            CustomMob spawnedMob = CustomMob.fromName(args[1] + args[0]);
+            if (spawnedMob == null) {
+                player.sendMessage("§cThat's not a valid entity and/or level!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+
+            spawnedMob.spawn(player.getLocation());
         }
         return true;
     }
@@ -150,4 +162,81 @@ public class CommandListener implements CommandExecutor {
         return true;
     }
 
+    private boolean handleListIngredientsForRecipe(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            if (args.length < 1) {
+                player.sendMessage("§cPlease specify the name of an item to view the ingredients for!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+
+            String input = args[0];
+            String[] splitInput = input.split("_");
+            input = "";
+            for (String word : splitInput) {
+                input += " " + word;
+            }
+            input = input.trim();
+
+            CustomItem itemFor = CustomItem.fromName(input);
+            if (itemFor == null) {
+                player.sendMessage("§cPlease specify a valid item! Item names with spaces are separated by underscores");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            if (itemFor.getRecipe() == null) {
+                player.sendMessage("§cPlease specify an item that has a recipe!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+
+            CustomRecipe recipe = itemFor.getRecipe();
+
+            if (args.length > 1) {
+                if (args[1].equalsIgnoreCase("total")) {
+                    player.sendMessage(recipe.getTotalIngredientsAsString());
+                } else {
+                    player.sendMessage(recipe.getIngredientsAsString());
+                }
+            } else {
+                player.sendMessage(recipe.getIngredientsAsString());
+            }
+        }
+        return true;
+    }
+
+    private boolean handleViewRecipe(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            if (args.length < 1) {
+                player.sendMessage("§cPlease specify the name of an item to view the recipe for!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+
+            String input = args[0];
+            String[] splitInput = input.split("_");
+            input = "";
+            for (String word : splitInput) {
+                input += " " + word;
+            }
+            input = input.trim();
+
+            CustomItem itemFor = CustomItem.fromName(input);
+            if (itemFor == null) {
+                player.sendMessage("§cPlease specify a valid item! Item names with spaces are separated by underscores");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            if (itemFor.getRecipe() == null) {
+                player.sendMessage("§cPlease specify an item that has a recipe!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            RecipeInventory recipeInventory = new RecipeInventory(itemFor);
+            player.openInventory(recipeInventory.getViewRecipeInventory());
+        }
+        return true;
+    }
 }

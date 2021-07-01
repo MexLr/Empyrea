@@ -3,10 +3,9 @@ package org.example.ataraxiawarmup.spawner;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.example.ataraxiawarmup.StringNormalizer;
+import org.example.ataraxiawarmup.mob.CustomMob;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +14,7 @@ public class SpawnerItem {
 
     private String name;
     private List<String> lore;
-    private EntityType spawnType;
+    private CustomMob spawnType;
     private double interval;
 
     private ItemStack item;
@@ -24,20 +23,20 @@ public class SpawnerItem {
         ItemMeta itemMeta = itemStack.getItemMeta();
         List<String> lore = itemMeta.getLore();
 
-        EntityType type = EntityType.ZOMBIE;
+        CustomMob type = CustomMob.fromName("1Spider");
         double interval = 5;
 
         Bukkit.getPlayer("MexLr").sendMessage("" + lore.size());
 
-        if (lore.get(0).split(" ").length == 3) {
-            type = EntityType.valueOf(ChatColor.stripColor(lore.get(0).split(" ")[2]).toUpperCase());
-            interval = Double.parseDouble(ChatColor.stripColor(lore.get(1).split(" ")[1]));
-        }
+        StringBuilder str = new StringBuilder();
+        str.append(lore.get(0).split(" ")[lore.get(0).split(" ").length - 2]).append(lore.get(0).split(" ")[lore.get(0).split(" ").length - 1]);
+        type = CustomMob.fromName(ChatColor.stripColor(str.toString()));
+        interval = Double.parseDouble(ChatColor.stripColor(lore.get(1).split(" ")[1]));
         this.spawnType = type;
         this.interval = interval;
     }
 
-    public SpawnerItem(EntityType spawnType, double interval) {
+    public SpawnerItem(CustomMob spawnType, double interval) {
         this.spawnType = spawnType;
         this.interval = interval;
     }
@@ -56,7 +55,7 @@ public class SpawnerItem {
      *
      * @return - The spawner's spawn type
      */
-    public EntityType getSpawnType() {
+    public CustomMob getSpawnType() {
         return this.spawnType;
     }
 
@@ -74,17 +73,16 @@ public class SpawnerItem {
      *
      * @return - The item form of the spawner.
      */
-    public ItemStack getItem() {
+    public ItemStack toItemStack() {
         item = new ItemStack(Material.SPAWNER);
         lore = new ArrayList<String>();
         ItemMeta im = item.getItemMeta();
-        StringNormalizer stringNormalizer = new StringNormalizer();
 
-        name = "§9" + stringNormalizer.normalizeString(this.spawnType.toString().toLowerCase() + " Spawner");
+        name = "§9Lv. " + this.spawnType.getLevel() + " " + this.spawnType.getName() + " Spawner";
 
         im.setDisplayName(name);
 
-        lore.add("§3Spawns a " + "§6" + stringNormalizer.normalizeString(this.spawnType.toString()));
+        lore.add("§3Spawns a " + "§6Lv. " + this.spawnType.getLevel() + " " + this.spawnType.getName());
         lore.add("§3every " + "§6" + (int) this.interval + "§3 seconds.");
 
         im.setLore(lore);

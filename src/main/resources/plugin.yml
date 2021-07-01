@@ -14,3 +14,7 @@ commands:
     aliases: [proj, projectile, projectiletrail, projectiletrailapplier, projapplier, projectileapplier, projtrailapplier]
   craft:
     aliases: []
+  ingredientsfor:
+    aliases: [recipe]
+  viewrecipe:
+    aliases: []

@@ -1,7 +1,6 @@
 package org.example.ataraxiawarmup.item;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -82,7 +81,7 @@ public class CraftingInventory {
                 matrix[i] = null;
                 continue;
             }
-            matrix[i] = new CustomItemStack(CustomItem.itemFromName(inventory.getItem(SLOTS[i]).getItemMeta().getDisplayName()), inventory.getItem(SLOTS[i]).getAmount());
+            matrix[i] = new CustomItemStack(CustomItem.fromName(inventory.getItem(SLOTS[i]).getItemMeta().getDisplayName()), inventory.getItem(SLOTS[i]).getAmount());
         }
         return matrix;
     }

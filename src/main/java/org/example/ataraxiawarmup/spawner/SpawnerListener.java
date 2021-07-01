@@ -29,7 +29,5 @@ public class SpawnerListener implements Listener {
 
         Spawner spawner = new Spawner(spawnerItem.getSpawnType(), spawnerItem.getInterval(), event.getBlock().getLocation(), plugin);
         spawner.startSpawning();
-
-        p.sendMessage("" + spawnerItem.getSpawnType() + ", " + spawnerItem.getInterval());
     }
 }

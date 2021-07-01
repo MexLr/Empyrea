@@ -1,5 +1,6 @@
 package org.example.ataraxiawarmup.item;
 
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -34,19 +35,23 @@ public class CustomItemStack {
     }
 
     public static CustomItemStack fromItemStack(ItemStack item) {
-        return new CustomItemStack(CustomItem.itemFromName(item.getItemMeta().getDisplayName()), item.getAmount());
+        return new CustomItemStack(CustomItem.fromName(item.getItemMeta().getDisplayName()), item.getAmount());
     }
 
     public static CustomItemStack fromItemStack(ItemStack item, int extraAmount) {
-        return new CustomItemStack(CustomItem.itemFromName(item.getItemMeta().getDisplayName()), item.getAmount() + extraAmount);
+        return new CustomItemStack(CustomItem.fromName(item.getItemMeta().getDisplayName()), item.getAmount() + extraAmount);
     }
 
-    public CustomItemType getType() {
-        return item.getType();
+    public Material getMaterial() {
+        return item.getMaterial();
+    }
+
+    public CustomItem getItem() {
+        return item;
     }
 
     public String toString() {
-        return "CustomItemStack{" + item.getType() + ", " + item.getItemMeta() + ", " + this.amount + "}";
+        return "CustomItemStack{" + item.getMaterial() + ", " + item.getItemMeta() + ", " + this.amount + "}";
     }
 
     public boolean isSimilar(CustomItemStack other) {
@@ -56,7 +61,7 @@ public class CustomItemStack {
         if (other == this) {
             return true;
         }
-        return getAmount() == other.getAmount() && getItemMeta() == other.getItemMeta() && getType() == other.getType();
+        return getAmount() == other.getAmount() && getItemMeta() == other.getItemMeta() && getMaterial() == other.getMaterial();
     }
 
     public boolean isLess(CustomItemStack other) {
@@ -66,7 +71,7 @@ public class CustomItemStack {
         if (other == this) {
             return true;
         }
-        return getAmount() <= other.getAmount() && getItemMeta() == other.getItemMeta() && getType() == other.getType();
+        return getAmount() <= other.getAmount() && getItemMeta() == other.getItemMeta() && getMaterial() == other.getMaterial();
     }
 
 }

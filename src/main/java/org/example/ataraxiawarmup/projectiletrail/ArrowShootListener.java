@@ -28,9 +28,10 @@ public class ArrowShootListener implements Listener {
             
             trail.setArrow((AbstractArrow) event.getEntity());
 
-            int task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, trail.getRunnable(), 0, 0);
-            trail.setTaskID(task);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                int task = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, trail.getRunnable(), 0, 0);
+                trail.setTaskID(task);
+            }, 2);
         }
     }
-
 }
