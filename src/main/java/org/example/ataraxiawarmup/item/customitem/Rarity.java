@@ -1,8 +1,6 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
 import org.bukkit.ChatColor;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +13,8 @@ public enum Rarity {
     EPIC("Epic", 4, ChatColor.DARK_PURPLE),
     LEGENDARY("Legendary", 5, ChatColor.GOLD),
     GODLIKE("Godlike", 6, ChatColor.LIGHT_PURPLE),
-    LOVECRAFTIAN("Lovecraftian", 7, ChatColor.DARK_AQUA);
+    TRINITY("TRINITY", 7, ChatColor.DARK_AQUA),
+    DUALITY("Duality", 8, ChatColor.WHITE);
 
     private String name;
     private short id;
@@ -68,8 +67,8 @@ public enum Rarity {
     }
 
     public String getLore() {
-        if (this == LOVECRAFTIAN) {
-            return ChatColor.RED + "" + ChatColor.BOLD + "LOVE" + ChatColor.AQUA + "" + ChatColor.BOLD + "CRAFTIAN";
+        if (this == DUALITY) {
+            return ChatColor.BLACK + "" + ChatColor.BOLD + "DUA" + ChatColor.WHITE + ChatColor.BOLD + "LITY";
         }
         return getColor() + "" + ChatColor.BOLD + getName().toUpperCase();
     }

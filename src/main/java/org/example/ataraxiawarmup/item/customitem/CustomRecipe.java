@@ -1,6 +1,5 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import java.util.*;
@@ -133,7 +132,7 @@ public class CustomRecipe {
                 if (recipe.getMatrix()[i] == null) {
                     continue;
                 }
-                if (recipe.getMatrix()[i].getItem() == item) {
+                if (recipe.getMatrix()[i].getItem().toCustomItemStack().isSimilar(item.toCustomItemStack())) {
                     recipes.add(recipe);
                     break;
                 }

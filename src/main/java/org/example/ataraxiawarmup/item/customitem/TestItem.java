@@ -4,9 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.example.ataraxiawarmup.item.CustomItem;
-import org.example.ataraxiawarmup.item.CustomItemStack;
-import org.example.ataraxiawarmup.item.Rarity;
 
 public class TestItem extends CustomItem {
 

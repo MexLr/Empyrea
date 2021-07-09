@@ -1,4 +1,4 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -10,7 +10,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.example.ataraxiawarmup.Main;
-import org.example.ataraxiawarmup.item.customitem.bow.shortbow.Azathoth;
 
 public class CustomItemListener implements Listener {
 
@@ -33,9 +32,19 @@ public class CustomItemListener implements Listener {
         }
         CustomItem heldItem = CustomItem.fromName(event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName());
 
+        if (heldItem instanceof CustomShortbow) {
+            if (((CustomWeapon) heldItem).hasAbility()) {
+                String itemName = heldItem.getItemMeta().getDisplayName();
+                itemName = itemName.replace(itemName.split(" ")[0], "").trim();
+                heldItem = CustomItem.fromName(itemName);
+            }
+        }
+
         if (event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.LEFT_CLICK_BLOCK)) {
             heldItem.onUseLeft(event.getPlayer());
         }
+
+        heldItem = CustomItem.fromName(event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName());
 
         if (event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) {
             heldItem.onUseRight(event.getPlayer());
@@ -56,7 +65,11 @@ public class CustomItemListener implements Listener {
             if (CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()) != null) {
                 CustomItem heldItem = CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
                 if (heldItem instanceof CustomWeapon) {
-                    ((CustomWeapon) heldItem).onDamageMob(player, event.getEntity(), 1.0D);
+                    if (heldItem instanceof CustomBow) {
+
+                    } else {
+                        ((CustomWeapon) heldItem).onDamageMob(player, event.getEntity(), 1.0D);
+                    }
                 }
             }
         }
@@ -80,10 +93,8 @@ public class CustomItemListener implements Listener {
                         if (projectile instanceof Arrow) {
                             ((CustomBow) heldItem).onArrowHitsMob(player, event.getEntity());
                         }
-                        if (heldItem instanceof Azathoth) {
-                            if (projectile instanceof Fireball) {
-                                ((Azathoth) heldItem).onFireballHitsMob(player, event.getEntity());
-                            }
+                        if (projectile instanceof Fireball) {
+                            ((CustomWeapon) heldItem).onFireballHitsMob(player, event.getEntity());
                         }
                     }
                 }

@@ -1,24 +1,21 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
-import org.example.ataraxiawarmup.Main;
 
 import java.util.List;
+import java.util.Map;
 
-public abstract class CustomShortbow extends CustomBow {
+public class CustomShortbow extends CustomWeapon {
 
     private final int arrowAmount;
 
-    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds) {
-        super(Material.BOW, name, rarity, recipeMatrix, elements, lowerBounds, upperBounds);
+    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap) {
+        super(Material.BOW, name, rarity, recipeMatrix, elements, lowerBounds, upperBounds, attributeMap, "");
         this.arrowAmount = arrowAmount;
     }
 

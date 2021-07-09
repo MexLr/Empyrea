@@ -1,8 +1,8 @@
 package org.example.ataraxiawarmup.mob;
 
 import org.bukkit.Location;
-import org.example.ataraxiawarmup.item.CustomItem;
-import org.example.ataraxiawarmup.item.CustomItemStack;
+import org.example.ataraxiawarmup.item.customitem.CustomItem;
+import org.example.ataraxiawarmup.item.customitem.CustomItemStack;
 
 import java.util.ArrayList;
 import java.util.List;

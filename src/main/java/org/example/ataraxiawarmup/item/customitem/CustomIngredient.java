@@ -1,6 +1,5 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -10,7 +9,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
-public abstract class CustomIngredient extends CustomItem {
+public class CustomIngredient extends CustomItem {
 
     public CustomIngredient(Material material, String name, Rarity rarity, CustomItemStack[] recipe, boolean isEnchanted) {
         super(material, name, rarity, recipe);

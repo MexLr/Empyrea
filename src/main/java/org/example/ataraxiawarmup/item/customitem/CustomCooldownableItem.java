@@ -1,12 +1,8 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.example.ataraxiawarmup.Cooldowns;
-import org.example.ataraxiawarmup.Main;
-
-import java.util.*;
 
 public abstract class CustomCooldownableItem extends CustomItem {
 
@@ -16,5 +12,12 @@ public abstract class CustomCooldownableItem extends CustomItem {
 
     public boolean addToCooldown(Player player, String name, long length) {
         return Cooldowns.tryCooldown(player, name, length);
+    }
+
+    @Override
+    public CustomCooldownableItem clone() {
+        CustomCooldownableItem item = (CustomCooldownableItem) super.clone();
+
+        return item;
     }
 }

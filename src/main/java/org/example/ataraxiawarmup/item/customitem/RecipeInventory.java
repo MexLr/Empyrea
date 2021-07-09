@@ -1,4 +1,4 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

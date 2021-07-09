@@ -5,7 +5,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.example.ataraxiawarmup.item.*;
+import org.example.ataraxiawarmup.item.customitem.*;
+import org.example.ataraxiawarmup.item.customitem.ability.Ability;
+import org.example.ataraxiawarmup.item.customitem.ability.AbilityApplyingInventory;
 import org.example.ataraxiawarmup.mob.CustomMob;
 import org.example.ataraxiawarmup.projectiletrail.ProjectileTrailApplierInventory;
 import org.example.ataraxiawarmup.spawner.SpawnerItem;
@@ -23,6 +25,7 @@ public class CommandListener implements CommandExecutor {
         plugin.getCommand("craft").setExecutor(this);
         plugin.getCommand("ingredientsfor").setExecutor(this);
         plugin.getCommand("viewrecipe").setExecutor(this);
+        plugin.getCommand("applyability").setExecutor(this);
     }
 
     @Override
@@ -41,6 +44,8 @@ public class CommandListener implements CommandExecutor {
             return handleListIngredientsForRecipe(sender, args);
         if (cmd.getName().equalsIgnoreCase("viewrecipe"))
             return handleViewRecipe(sender, args);
+        if (cmd.getName().equalsIgnoreCase("applyability"))
+            return handleOpenApplyAbilityInventory(sender, args);
         return false;
     }
 
@@ -63,6 +68,7 @@ public class CommandListener implements CommandExecutor {
                 case "SPAWNER":
                     SpawnerItem spawnerItem = new SpawnerItem(CustomMob.fromName("1Spider"), 5);
                     player.getInventory().addItem(spawnerItem.toItemStack());
+                    break;
                 default:
                     break;
             }
@@ -80,6 +86,18 @@ public class CommandListener implements CommandExecutor {
                     player.getInventory().addItem(new CustomItemStack(CustomItem.fromName(input), Integer.parseInt(args[1])).toItemStack());
                 } else {
                     player.getInventory().addItem(new CustomItemStack(CustomItem.fromName(input)).toItemStack());
+                }
+            }
+
+            if (input.equalsIgnoreCase("all")) {
+                for (CustomItem item : CustomItem.CUSTOM_ITEMS.values()) {
+                    if (item instanceof CustomWeapon) {
+                        if (!((CustomWeapon) item).hasAbility()) {
+                            player.getWorld().dropItemNaturally(player.getLocation(), new CustomItemStack(item).toItemStack());
+                        }
+                    } else {
+                        player.getWorld().dropItemNaturally(player.getLocation(), new CustomItemStack(item).toItemStack());
+                    }
                 }
             }
         }
@@ -101,7 +119,15 @@ public class CommandListener implements CommandExecutor {
                 return false;
             }
 
-            CustomMob type = CustomMob.fromName(args[0]);
+            String input = args[0];
+            String[] splitInput = input.split("_");
+            input = "";
+            for (String word : splitInput) {
+                input += " " + word;
+            }
+            input = input.trim();
+
+            CustomMob type = CustomMob.fromName(input);
             if (type == null) {
                 player.sendMessage("§cPlease specify a valid CustomMob!");
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
@@ -130,7 +156,15 @@ public class CommandListener implements CommandExecutor {
                 return false;
             }
 
-            CustomMob spawnedMob = CustomMob.fromName(args[1] + args[0]);
+            String input = args[0];
+            String[] splitInput = input.split("_");
+            input = "";
+            for (String word : splitInput) {
+                input += " " + word;
+            }
+            input = input.trim();
+
+            CustomMob spawnedMob = CustomMob.fromName(args[1] + input);
             if (spawnedMob == null) {
                 player.sendMessage("§cThat's not a valid entity and/or level!");
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
@@ -237,6 +271,13 @@ public class CommandListener implements CommandExecutor {
             RecipeInventory recipeInventory = new RecipeInventory(itemFor);
             player.openInventory(recipeInventory.getViewRecipeInventory());
         }
+        return true;
+    }
+
+    private boolean handleOpenApplyAbilityInventory(CommandSender sender, String[] args) {
+        Player player = (Player) sender;
+        AbilityApplyingInventory inventory = new AbilityApplyingInventory();
+        player.openInventory(inventory.getInventory());
         return true;
     }
 }

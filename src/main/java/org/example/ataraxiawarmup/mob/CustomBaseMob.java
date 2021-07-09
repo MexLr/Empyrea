@@ -2,7 +2,7 @@ package org.example.ataraxiawarmup.mob;
 
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.example.ataraxiawarmup.item.Element;
+import org.example.ataraxiawarmup.item.customitem.Element;
 
 import java.util.List;
 

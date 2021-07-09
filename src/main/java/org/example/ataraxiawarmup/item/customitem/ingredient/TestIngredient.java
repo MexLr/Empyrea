@@ -2,9 +2,9 @@ package org.example.ataraxiawarmup.item.customitem.ingredient;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.example.ataraxiawarmup.item.CustomIngredient;
-import org.example.ataraxiawarmup.item.CustomItemStack;
-import org.example.ataraxiawarmup.item.Rarity;
+import org.example.ataraxiawarmup.item.customitem.CustomIngredient;
+import org.example.ataraxiawarmup.item.customitem.CustomItemStack;
+import org.example.ataraxiawarmup.item.customitem.Rarity;
 
 public class TestIngredient extends CustomIngredient {
 

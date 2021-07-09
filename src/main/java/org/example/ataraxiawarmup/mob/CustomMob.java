@@ -4,9 +4,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.*;
-import org.bukkit.util.Vector;
 import org.example.ataraxiawarmup.Main;
-import org.example.ataraxiawarmup.item.Element;
+import org.example.ataraxiawarmup.item.customitem.CustomWeapon;
+import org.example.ataraxiawarmup.item.customitem.Element;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,11 +22,13 @@ public abstract class CustomMob implements Cloneable {
     private final List<Element> elements;
     private final int damage;
     private final int level;
-    private final int defense;
+    private int defense;
     private final int maxHealth;
     private final CustomLootTable lootTable;
     private int health;
     private Entity entity;
+    private boolean isCharged = false;
+    private boolean isGripped = false;
 
     public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, CustomLootTable lootTable) {
         this(name, entityType, elements, damage, level, defense, maxHealth, lootTable, false);
@@ -140,6 +142,36 @@ public abstract class CustomMob implements Cloneable {
     }
 
     /**
+     * Sets the defense of the mob.
+     *
+     * @param defense - the new defense for the mob to have
+     */
+    public void setDefense(int defense) {
+        this.defense = defense;
+    }
+
+    /**
+     * Removes defense from the mob.
+     *
+     * @param amount - The amount of defense to remove from the mob.
+     */
+    public void removeDefense(double amount) {
+        this.defense -= amount;
+        if (this.defense < 0) {
+            this.defense = 0;
+        }
+    }
+
+    /**
+     * Removes a percentage of the mob's defense.
+     *
+     * @param percent - The percentage of the mob's defense to remove.
+     */
+    public void removeDefensePercentage(double percent) {
+        removeDefense(this.defense * percent / 100);
+    }
+
+    /**
      * Gets the max health of the mob.
      *
      * @return - The mob's max health
@@ -190,6 +222,7 @@ public abstract class CustomMob implements Cloneable {
      */
     protected void remove() {
         ((Damageable) this.entity).setHealth(0);
+
         CUSTOM_MOBS.remove(this.entity);
         if (lootTable != null) {
             lootTable.dropItems(this.entity.getLocation());
@@ -218,6 +251,42 @@ public abstract class CustomMob implements Cloneable {
         }
         builder.append(" " + ChatColor.RED).append((int) health).append('♥');
         return builder.toString();
+    }
+
+    /**
+     * Returns if this mob is charged or not. A mob is charged from the Thunder ability.
+     *
+     * @return - if the mob is charged
+     */
+    public boolean isCharged() {
+        return isCharged;
+    }
+
+    /**
+     * Sets the charged state of the mob.
+     *
+     * @param charged - This mob's new charged status.
+     */
+    public void setCharged(boolean charged) {
+        this.isCharged = charged;
+    }
+
+    /**
+     * Returns if this mob is affected by the Grips of Chaos ability.
+     *
+     * @return - if the mob is gripped
+     */
+    public boolean isGripped() {
+        return isGripped;
+    }
+
+    /**
+     * Sets whether or not the mob is affected by the Grips of Chaos ability.
+     *
+     * @param gripped - The mob's new gripped status.
+     */
+    public void setGripped(boolean gripped) {
+        this.isGripped = gripped;
     }
 
     /**

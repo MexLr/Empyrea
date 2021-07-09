@@ -1,6 +1,5 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -9,14 +8,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
-public abstract class CustomItem {
+public abstract class CustomItem implements Cloneable {
 
     public static final Map<String, CustomItem> CUSTOM_ITEMS = new HashMap<>();
 
     private final Material material;
     private final String name;
     private final Rarity rarity;
-    private ItemMeta meta = new ItemStack(Material.BARRIER).getItemMeta();
+    private ItemMeta meta;
     private CustomRecipe recipe;
     private CustomItemStack[] recipeMatrix;
 
@@ -26,7 +25,16 @@ public abstract class CustomItem {
         this.rarity = rarity;
         this.recipeMatrix = recipeMatrix;
 
-        this.meta.setDisplayName(this.rarity.getColor() + this.name);
+        this.meta = new ItemStack(Material.BARRIER).getItemMeta();
+
+        if (name == "Nadir") {
+            this.meta.setDisplayName(ChatColor.BLACK + this.name);
+        } else if (name == "Zenith") {
+            this.meta.setDisplayName(ChatColor.WHITE + this.name);
+        } else {
+            this.meta.setDisplayName(this.rarity.getColor() + this.name);
+        }
+
         List<String> lore = new ArrayList<>();
         lore.add("");
         lore.add(this.rarity.getLore());
@@ -110,6 +118,29 @@ public abstract class CustomItem {
     }
 
     /**
+     * Sets the recipe of this item.
+     *
+     * @param recipe - The new recipe for this item to have
+     */
+    public void setRecipe(CustomRecipe recipe) {
+        if (recipe == null) {
+            this.recipeMatrix = null;
+            removeRecipe();
+        } else {
+            this.recipeMatrix = recipe.getMatrix();
+        }
+        this.recipe = recipe;
+    }
+
+    /**
+     * Removes this item's recipe from the CustomRecipe maps.
+     */
+    public void removeRecipe() {
+        CustomRecipe.NAME_MAP.remove(this.getItemMeta().getDisplayName());
+        CustomRecipe.RECIPE_MAP.remove(this.getRecipe());
+    }
+
+    /**
      * Returns the Material of this item
      *
      * @return - The Material of this item
@@ -137,6 +168,15 @@ public abstract class CustomItem {
     }
 
     /**
+     * Returns the rarity of the item.
+     *
+     * @return - The rarity of the item
+     */
+    public Rarity getRarity() {
+        return this.rarity;
+    }
+
+    /**
      * Gets a CustomItem by name
      *
      * @param name - The name of the CustomItem that is being searched for
@@ -144,5 +184,26 @@ public abstract class CustomItem {
      */
     public static CustomItem fromName(String name) {
         return CUSTOM_ITEMS.get(ChatColor.stripColor(name).toLowerCase());
+    }
+
+    @Override
+    public CustomItem clone() {
+        try {
+            CustomItem customItem = (CustomItem) super.clone();
+
+            ItemMeta itemMeta = this.meta.clone();
+            customItem.setItemMeta(itemMeta);
+
+            if (this.recipeMatrix == null) {
+                customItem.recipeMatrix = null;
+            } else {
+                customItem.recipeMatrix = this.recipeMatrix.clone();
+            }
+            customItem.recipe = this.recipe;
+
+            return customItem;
+        } catch (CloneNotSupportedException e) {
+            throw new Error(e);
+        }
     }
 }

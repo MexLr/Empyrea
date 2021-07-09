@@ -18,3 +18,5 @@ commands:
     aliases: [recipe]
   viewrecipe:
     aliases: []
+  applyability:
+    aliases: [apply, abilityapplier, abilityanvil, applyanvil, applieranvil]

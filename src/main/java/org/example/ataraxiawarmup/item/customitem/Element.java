@@ -1,4 +1,4 @@
-package org.example.ataraxiawarmup.item;
+package org.example.ataraxiawarmup.item.customitem;
 
 import org.bukkit.ChatColor;
 
@@ -10,6 +10,8 @@ public enum Element {
     FIRE("Fire", "Water", 0.75, "Earth", 1.5, ChatColor.RED, "✹"),
     WATER("Water", "Earth", 0.75, "Fire", 1.5, ChatColor.AQUA, "❉"),
     EARTH("Earth", "Fire", 0.75, "Water", 1.5, ChatColor.DARK_GREEN, "✤"),
+    THUNDER("Thunder", "All", 1.0, "All", 1.0, ChatColor.YELLOW, "✦"), // randomly does from 50-200% damage
+    AIR("Air", "All", 1.0, "All", 1.0, ChatColor.GRAY, "❋"), // bypasses enemy defense
     CHAOS("Chaos", "All", 1.0, "All", 2.0, ChatColor.DARK_PURPLE, "✯");
 
     private String name;
@@ -21,10 +23,12 @@ public enum Element {
     private String representingChar;
 
     private static final Map<String, Element> CHAR_MAP = new HashMap<>();
+    private static final Map<String, Element> NAME_MAP = new HashMap<>();
 
     static {
         for (Element type : values()) {
             CHAR_MAP.put(type.getColor() + type.representingChar, type);
+            NAME_MAP.put(type.getName().toLowerCase(), type);
         }
     }
 
@@ -82,5 +86,9 @@ public enum Element {
 
     public static Element fromChar(String representingChar) {
         return CHAR_MAP.get(representingChar);
+    }
+
+    public static Element fromName(String name) {
+        return NAME_MAP.get(name.toLowerCase());
     }
 }
