@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.example.ataraxiawarmup.Main;
+import org.example.ataraxiawarmup.player.CustomPlayer;
 
 import java.util.List;
 
@@ -25,7 +26,6 @@ public class ApplierListener implements Listener {
     public void onPlayerClicksInInventory(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         Main main = Main.getInstance();
-        List<String> stats = main.playerStats.get(player.getUniqueId());
 
         if (event.getView().getTitle().equalsIgnoreCase("Projectile Trails")) {
             if (!event.getClick().isLeftClick()) {
@@ -35,7 +35,7 @@ public class ApplierListener implements Listener {
                 if (event.getSlot() == event.getRawSlot()) {
                     ItemStack clickedItem = event.getClickedInventory().getItem(event.getSlot());
                     if (!clickedItem.getType().equals(Material.GRAY_STAINED_GLASS_PANE) && !clickedItem.getType().equals(Material.ARROW) && !clickedItem.getType().equals(Material.BARRIER)) {
-                        stats.set(0, ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName()));
+                        CustomPlayer.fromPlayer(player).setTrail(ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName()));
                         ProjectileTrailApplierInventory applierInventory = new ProjectileTrailApplierInventory(player);
                         Bukkit.getScheduler().runTask(plugin, () -> {
                             player.openInventory(applierInventory.getInv());

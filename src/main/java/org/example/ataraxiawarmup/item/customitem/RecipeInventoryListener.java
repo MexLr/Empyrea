@@ -1,6 +1,7 @@
 package org.example.ataraxiawarmup.item.customitem;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -55,25 +56,48 @@ public class RecipeInventoryListener implements Listener {
         if (event.getView().getTitle().startsWith("Recipes")) {
             if (event.getSlot() == event.getRawSlot()) {
                 event.setCancelled(true);
-                String itemName = event.getView().getTitle()
+
+                // get most of the item name. Here's an example:
+                // "Recipes for Enchanted Stick 1/14"
+                // get the string after " for " and before "/":
+                // Enchanted Stick 1
+                String itemName = ChatColor.stripColor(event.getView().getTitle()
                         .split(" for ")[1]
                         .split("/")[0]
-                        .trim();
+                        .trim());
 
-                itemName = itemName.replace(itemName.charAt(itemName.length() - 1), ' ').trim();
+                // take the item name and replace the number with air. Example:
+                // Enchanted Stick 1
+                // split by (" ") and take the last string in the returned array, or the string at index arrayLength - 1
+                // replace the last string with nothing, and trim the string
+                itemName = itemName.replace(itemName.split(" ")[itemName.split(" ").length - 1], "").trim();
 
                 CustomItem forItem = CustomItem.fromName(itemName);
+                // get the page. Here's an example:
+                // Enchanted Stick 1/14
+                // get the string before "/":
+                // Enchanted Stick 1
+                // do the same as removing the page number above, except actually use the page number instead of replacing it:
+                // split by (" ") and take the last string in the returned array, or the string at index arrayLength - 1
+                // trim the string
                 int page = Integer.parseInt(event.getView().getTitle()
                         .split("/")[0]
                         .split(" ")[event.getView().getTitle().split("/")[0].split(" ").length - 1]
                         .trim());
+
                 switch (event.getSlot()) {
                     case 45:
                         if (event.getCurrentItem().getType().equals(Material.ARROW)) {
                             RecipeInventory newInventory = new RecipeInventory(CustomRecipe.usesItem(forItem), forItem);
-                            Bukkit.getScheduler().runTask(plugin, () -> {
-                                event.getWhoClicked().openInventory(newInventory.getInventories().get(page - 2));
-                            });
+                            if (event.getClick().equals(ClickType.RIGHT)) {
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    event.getWhoClicked().openInventory(newInventory.getInventories().get(0));
+                                });
+                            } else {
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    event.getWhoClicked().openInventory(newInventory.getInventories().get(page - 2));
+                                });
+                            }
                         }
                         break;
                     case 49:
@@ -84,9 +108,15 @@ public class RecipeInventoryListener implements Listener {
                     case 53:
                         if (event.getCurrentItem().getType().equals(Material.ARROW)) {
                             RecipeInventory newInventory = new RecipeInventory(CustomRecipe.usesItem(forItem), forItem);
-                            Bukkit.getScheduler().runTask(plugin, () -> {
-                                event.getWhoClicked().openInventory(newInventory.getInventories().get(page));
-                            });
+                            if (event.getClick().equals(ClickType.RIGHT)) {
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    event.getWhoClicked().openInventory(newInventory.getInventories().get(newInventory.getInventories().size() - 1)); // get the last page, using the same .length - 1 or .size() - 1 that i've been using to get the last index in an array or list
+                                });
+                            } else {
+                                Bukkit.getScheduler().runTask(plugin, () -> {
+                                    event.getWhoClicked().openInventory(newInventory.getInventories().get(page));
+                                });
+                            }
                         }
                         break;
                 }

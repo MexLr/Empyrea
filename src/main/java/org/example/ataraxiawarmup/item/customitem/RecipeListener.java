@@ -39,6 +39,7 @@ public class RecipeListener implements Listener {
                 }
                 if (event.getSlot() == 24 && event.getInventory().getItem(24) != null && event.getClick().equals(ClickType.LEFT)) {
                     if (event.getCursor().getType().equals(event.getInventory().getItem(24).getType()) && event.getCursor().getItemMeta().equals(event.getInventory().getItem(24).getItemMeta()) || event.getCursor().getType().equals(Material.AIR)) {
+                        CustomItemStack[] items = craftingInventory.getCustomMatrix(event.getInventory()).clone();
                         ItemStack[] items1 = craftingInventory.getMatrix(event.getInventory());
 
                         final ItemStack savedItem;
@@ -47,13 +48,36 @@ public class RecipeListener implements Listener {
                         } else {
                             savedItem = null;
                         }
-                        CustomItemStack[] recipe = CustomRecipe.fromName(event.getInventory().getItem(24).getItemMeta().getDisplayName()).getMatrix();
+                        CustomRecipe recipe = CustomRecipe.fromName(event.getInventory().getItem(24).getItemMeta().getDisplayName());
+                        CustomItemStack[] recipeMatrix = recipe.getMatrix().clone();
 
-                        for (int i = 0; i < items1.length; i++) {
-                            if (items1[i] != null) {
-                                ItemStack addedItem = items1[i];
-                                addedItem.setAmount(addedItem.getAmount() - recipe[i].getAmount());
-                                event.getInventory().setItem(craftingInventory.SLOTS[i], addedItem);
+                        if (recipe.isShapeless()) {
+                            // iterate through the array of CustomItemStacks in the (cloned) crafting matrix
+                            for (int i = 0; i < items.length; i++) {
+                                if (items[i] == null) { // if the item is null, continue
+                                    continue;
+                                }
+                                for (int j = 0; j < recipeMatrix.length; j++) { // iterate through the array of CustomItemStacks in the (cloned) recipe matrix
+                                    if (recipeMatrix[j] == null) { // if the recipe's item is null, continue
+                                        continue;
+                                    }
+                                    if (recipeMatrix[j].isLess(items[i])) { // if an item in the recipe and the item in the given matrix matches
+                                        items[i] = new CustomItemStack(Main.CUSTOM_AIR); // set the item in the given matrix to essentially a pseudo-null to avoid extra successes or skips
+                                        // set the item in the inventory to the same item, minus the amount from the recipe matrix's item
+                                        ItemStack addedItem = items1[i];
+                                        addedItem.setAmount(addedItem.getAmount() - recipeMatrix[j].getAmount());
+                                        event.getInventory().setItem(craftingInventory.SLOTS[i], addedItem);
+                                        break; // break out of this for loop, continuing the outer one (the given matrix loop)
+                                    }
+                                }
+                            }
+                        } else {
+                            for (int i = 0; i < items1.length; i++) {
+                                if (items1[i] != null) {
+                                    ItemStack addedItem = items1[i];
+                                    addedItem.setAmount(addedItem.getAmount() - recipeMatrix[i].getAmount());
+                                    event.getInventory().setItem(craftingInventory.SLOTS[i], addedItem);
+                                }
                             }
                         }
                         ItemStack cursor = event.getView().getCursor();
@@ -69,20 +93,48 @@ public class RecipeListener implements Listener {
                 } else if (event.getSlot() == 24 && event.getInventory().getItem(24) != null && event.getClick().equals(ClickType.SHIFT_LEFT)) {
                     if (event.getCursor().getType().equals(event.getInventory().getItem(24).getType()) && event.getCursor().getItemMeta().equals(event.getInventory().getItem(24).getItemMeta()) || event.getCursor().getType().equals(Material.AIR)) {
                         CustomItemStack[] items = craftingInventory.getCustomMatrix(event.getInventory());
-                        CustomItemStack[] recipe = CustomRecipe.fromName(event.getInventory().getItem(24).getItemMeta().getDisplayName()).getMatrix();
+                        CustomItemStack[] givingItems = craftingInventory.getCustomMatrix(event.getInventory()).clone(); // the items used as an input for getting the recipe
+                        CustomRecipe recipe = CustomRecipe.fromName(event.getInventory().getItem(24).getItemMeta().getDisplayName());
+
+                        CustomItemStack[] recipeMatrix = recipe.getMatrix();
 
                         ItemStack[] items1 = craftingInventory.getMatrix(event.getInventory());
 
-                        while (CustomRecipe.getResult(items) != null) {
-                            for (int i = 0; i < items1.length; i++) {
-                                if (items1[i] != null) {
-                                    ItemStack addedItem = items1[i];
-                                    addedItem.setAmount(addedItem.getAmount() - recipe[i].getAmount());
-                                    event.getInventory().setItem(craftingInventory.SLOTS[i], addedItem);
+                        while (CustomRecipe.getResult(givingItems) != null) {
+                            if (recipe.isShapeless()) {
+                                // iterate through the array of CustomItemStacks in the (cloned) crafting matrix
+                                for (int i = 0; i < items.length; i++) {
+                                    if (items[i] == null) { // if the item is null, continue
+                                        continue;
+                                    }
+                                    for (int j = 0; j < recipeMatrix.length; j++) { // iterate through the array of CustomItemStacks in the (cloned) recipe matrix
+                                        if (recipeMatrix[j] == null) { // if the recipe's item is null, continue
+                                            continue;
+                                        }
+                                        if (recipeMatrix[j].isLess(items[i])) { // if an item in the recipe and the item in the given matrix matches
+                                            items[i] = new CustomItemStack(Main.CUSTOM_AIR); // set the item in the given matrix to essentially a pseudo-null to avoid extra successes or skips
+                                            // set the item in the inventory to the same item, minus the amount from the recipe matrix's item
+                                            ItemStack addedItem = items1[i];
+                                            addedItem.setAmount(addedItem.getAmount() - recipeMatrix[j].getAmount());
+                                            event.getInventory().setItem(craftingInventory.SLOTS[i], addedItem);
+                                            break; // break out of this for loop, continuing the outer one (the given matrix loop)
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (int i = 0; i < items1.length; i++) {
+                                    if (items1[i] != null) {
+                                        ItemStack addedItem = items1[i];
+                                        addedItem.setAmount(addedItem.getAmount() - recipeMatrix[i].getAmount());
+                                        event.getInventory().setItem(craftingInventory.SLOTS[i], addedItem);
+                                    }
                                 }
                             }
-                            event.getWhoClicked().getInventory().addItem(CustomRecipe.getResult(items).toItemStack());
+                            event.getWhoClicked().getInventory().addItem(CustomRecipe.getResult(givingItems).toItemStack());
+                            // reset all of the arrays to what's actually in the matrix
+                            givingItems = craftingInventory.getCustomMatrix(event.getInventory());
                             items = craftingInventory.getCustomMatrix(event.getInventory());
+                            items1 = craftingInventory.getMatrix(event.getInventory());
                         }
                         event.getInventory().setItem(24, new ItemStack(Material.AIR));
                     }

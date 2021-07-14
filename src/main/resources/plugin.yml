@@ -3,6 +3,7 @@ version: 1.0.0
 author: MexLr
 main: org.example.ataraxiawarmup.Main
 api-version: 1.17
+depend: [NoteBlockAPI]
 commands:
   item:
     aliases: [i, giveitem]
@@ -20,3 +21,9 @@ commands:
     aliases: []
   applyability:
     aliases: [apply, abilityapplier, abilityanvil, applyanvil, applieranvil]
+  spell:
+    aliases: []
+  warp:
+    aliases: []
+  startsong:
+    aliases: [playsong]

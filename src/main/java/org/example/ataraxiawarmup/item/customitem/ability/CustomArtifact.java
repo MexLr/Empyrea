@@ -19,7 +19,7 @@ public class CustomArtifact extends CustomItem {
     private int level;
 
     public CustomArtifact(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, Ability ability, int level) {
-        super(material, name, rarity, recipeMatrix);
+        super(material, name, rarity, recipeMatrix, false);
         this.ability = ability;
         this.level = level;
         ItemMeta itemMeta = getItemMeta();
@@ -33,6 +33,14 @@ public class CustomArtifact extends CustomItem {
         itemMeta.setLore(lore);
         setItemMeta(itemMeta);
         CUSTOM_ITEMS.put(ChatColor.stripColor(getItemMeta().getDisplayName()).toLowerCase(), this);
+    }
+
+    public Ability getAbility() {
+        return ability;
+    }
+
+    public int getLevel() {
+        return level;
     }
 
     @Override

@@ -9,6 +9,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.example.ataraxiawarmup.Main;
+import org.example.ataraxiawarmup.player.CustomPlayer;
 
 import java.util.*;
 
@@ -40,7 +41,7 @@ public class ProjectileTrailApplierInventory {
             inv.setItem(i, Main.getInstance().FILLER_ITEM);
         }
         for (ItemStack item : TRAIL_ITEM_LIST) {
-            if (Main.getInstance().playerStats.get(player.getUniqueId()).get(0).equals(ChatColor.stripColor(item.getItemMeta().getDisplayName()))) {
+            if (CustomPlayer.fromPlayer(player).getTrail().equals(ChatColor.stripColor(item.getItemMeta().getDisplayName()))) {
                 inv.setItem(TRAIL_ITEM_LIST.indexOf(item), getSetSelected(item));
             } else {
                 inv.setItem(TRAIL_ITEM_LIST.indexOf(item), item);

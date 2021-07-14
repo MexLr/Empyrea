@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -14,9 +15,17 @@ public class CustomShortbow extends CustomWeapon {
 
     private final int arrowAmount;
 
-    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap) {
-        super(Material.BOW, name, rarity, recipeMatrix, elements, lowerBounds, upperBounds, attributeMap, "");
+    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore) {
+        this(name, rarity, recipeMatrix, false, arrowAmount, elements, lowerBounds, upperBounds, attributeMap, extraLore);
+    }
+
+    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore) {
+        super(Material.BOW, name, rarity, recipeMatrix, shapeless, elements, lowerBounds, upperBounds, attributeMap, extraLore);
         this.arrowAmount = arrowAmount;
+    }
+
+    public void onArrowHitsMob(Player player, Entity damaged) {
+        onDamageMob(player, damaged, 1.0D);
     }
 
     @Override

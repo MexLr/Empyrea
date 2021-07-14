@@ -25,11 +25,20 @@ public enum Element {
     private static final Map<String, Element> CHAR_MAP = new HashMap<>();
     private static final Map<String, Element> NAME_MAP = new HashMap<>();
 
+    private static final ArrayList<Element> ELEMENT_ORDER = new ArrayList<>();
+
     static {
         for (Element type : values()) {
             CHAR_MAP.put(type.getColor() + type.representingChar, type);
             NAME_MAP.put(type.getName().toLowerCase(), type);
         }
+        ELEMENT_ORDER.add(Element.FIRE);
+        ELEMENT_ORDER.add(Element.WATER);
+        ELEMENT_ORDER.add(Element.EARTH);
+        ELEMENT_ORDER.add(Element.THUNDER);
+        ELEMENT_ORDER.add(Element.AIR);
+        ELEMENT_ORDER.add(Element.CHAOS);
+        ELEMENT_ORDER.add(Element.NEUTRAL);
     }
 
     Element(String name, String weakAgainst, double damageMulti, String strongAgainst, double damageMulti2, ChatColor color, String representingChar) {
@@ -90,5 +99,9 @@ public enum Element {
 
     public static Element fromName(String name) {
         return NAME_MAP.get(name.toLowerCase());
+    }
+
+    public static List<Element> getElementOrder() {
+        return ELEMENT_ORDER;
     }
 }

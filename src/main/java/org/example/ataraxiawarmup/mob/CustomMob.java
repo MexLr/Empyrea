@@ -3,11 +3,17 @@ package org.example.ataraxiawarmup.mob;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.ItemStack;
 import org.example.ataraxiawarmup.Main;
 import org.example.ataraxiawarmup.item.customitem.CustomWeapon;
 import org.example.ataraxiawarmup.item.customitem.Element;
+import org.example.ataraxiawarmup.item.customitem.ItemAttribute;
+import org.example.ataraxiawarmup.mob.boss.BossType;
+import org.example.ataraxiawarmup.player.CustomPlayer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,22 +25,36 @@ public abstract class CustomMob implements Cloneable {
 
     private final String name;
     private final EntityType entityType;
+    private BossType bossType;
     private final List<Element> elements;
     private final int damage;
     private final int level;
     private int defense;
     private final int maxHealth;
-    private final CustomLootTable lootTable;
+    private final List<CustomLootTable> lootTables;
     private int health;
     private Entity entity;
     private boolean isCharged = false;
     private boolean isGripped = false;
+    private boolean isCasting = false;
 
-    public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, CustomLootTable lootTable) {
-        this(name, entityType, elements, damage, level, defense, maxHealth, lootTable, false);
+    private Player lastDamager;
+
+    private ItemStack helmet;
+    private ItemStack chestplate;
+    private ItemStack leggings;
+    private ItemStack boots;
+
+    public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables) {
+        this(name, entityType, elements, damage, level, defense, maxHealth, lootTables, false);
     }
 
-    public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, CustomLootTable lootTable, boolean template) {
+    public CustomMob(String name, BossType bossType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template) {
+        this(name, bossType.getEntityType(), elements, damage, level, defense, maxHealth, lootTables, template);
+        this.bossType = bossType;
+    }
+
+    public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template) {
         this.name = name;
         this.entityType = entityType;
         this.elements = elements;
@@ -43,7 +63,7 @@ public abstract class CustomMob implements Cloneable {
         this.defense = defense;
         this.maxHealth = maxHealth;
         this.health = maxHealth;
-        this.lootTable = lootTable;
+        this.lootTables = lootTables;
         if (template) {
             CUSTOM_MOB_TEMPLATES.put(ChatColor.stripColor(level + name.toLowerCase()), this);
         }
@@ -69,12 +89,27 @@ public abstract class CustomMob implements Cloneable {
      * @param location - Location to spawn the mob at
      */
     public void spawn(Location location) {
-        Entity spawnedEntity = location.getWorld().spawnEntity(location, entityType);
+        Entity spawnedEntity;
+        if (bossType != null) {
+            spawnedEntity = bossType.spawn(location);
+        } else {
+            spawnedEntity = location.getWorld().spawnEntity(location, entityType);
+        }
+
         spawnedEntity.setCustomName(getCustomName());
         spawnedEntity.setCustomNameVisible(true);
         ((LivingEntity) spawnedEntity).setMaximumNoDamageTicks(0);
-        ((LivingEntity) spawnedEntity).setAI(false);
+        if (spawnedEntity instanceof Slime || spawnedEntity instanceof MagmaCube) {
+            ((Slime) spawnedEntity).setSize((int) Math.round(Math.random() + 2));
+        }
+        // ((LivingEntity) spawnedEntity).setAI(false);
+        if (this.helmet != null) {
+            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                ((LivingEntity) spawnedEntity).getEquipment().setHelmet(this.helmet);
+            });
+        }
         this.entity = spawnedEntity;
+
         CUSTOM_MOBS.put(this.entity, this);
     }
 
@@ -203,7 +238,8 @@ public abstract class CustomMob implements Cloneable {
      *
      * @param amount - The amount of damage that should be dealt
      */
-    public void damage(int amount) {
+    public void damage(int amount, Player player) {
+        this.lastDamager = player;
         int newHealth = getHealth() - amount;
         if (newHealth < 0) {
             newHealth = 0;
@@ -224,8 +260,13 @@ public abstract class CustomMob implements Cloneable {
         ((Damageable) this.entity).setHealth(0);
 
         CUSTOM_MOBS.remove(this.entity);
-        if (lootTable != null) {
-            lootTable.dropItems(this.entity.getLocation());
+        if (lootTables != null) {
+            CustomPlayer lastPlayerToHit = CustomPlayer.fromPlayer(this.lastDamager);
+            for (CustomLootTable lootTable : lootTables) {
+                if (lootTable != null) {
+                    lootTable.dropItems(this.entity.getLocation(), lastPlayerToHit.getValueOfAttribute(ItemAttribute.LOOTBONUS));
+                }
+            }
         }
     }
 
@@ -234,8 +275,8 @@ public abstract class CustomMob implements Cloneable {
      *
      * @return - The mob's loot table
      */
-    public CustomLootTable getLootTable() {
-        return lootTable;
+    public List<CustomLootTable> getLootTables() {
+        return lootTables;
     }
 
     /**
@@ -251,6 +292,15 @@ public abstract class CustomMob implements Cloneable {
         }
         builder.append(" " + ChatColor.RED).append((int) health).append('♥');
         return builder.toString();
+    }
+
+    /**
+     * Sets the entity's helmet.
+     *
+     * @param item - the item to set the helmet to
+     */
+    public void setHelmet(ItemStack item) {
+        this.helmet = item;
     }
 
     /**
@@ -287,6 +337,52 @@ public abstract class CustomMob implements Cloneable {
      */
     public void setGripped(boolean gripped) {
         this.isGripped = gripped;
+    }
+
+    /**
+     * Returns if this mob is currently casting a spell.
+     *
+     * @return - If the mob is casting a spell
+     */
+    public boolean isCasting() {
+        return isCasting;
+    }
+
+    /**
+     * Sets whether or not the mob is casting a spell
+     *
+     * @param casting - If the mob should be casting a spell.
+     */
+    public void setCasting(boolean casting) {
+        this.isCasting = casting;
+    }
+
+    /** Checks if the entity is invulnerable. Used for bosses/minibosses that require you to kill weaker entities first.
+     *
+     * @return - If the entity is invunerable
+     */
+    public boolean isInvulnerable() {
+        if (this.bossType != null) {
+            switch (this.bossType) {
+                case LEADMINION:
+                    List<Entity> nearbyEntities = this.entity.getNearbyEntities(20, 20, 20);
+                    for (Entity entity : nearbyEntities) {
+                        if (entity instanceof WitherSkeleton) {
+                            return true;
+                        }
+                    }
+                    return false;
+                case WITHER:
+                    nearbyEntities = this.entity.getNearbyEntities(100, 20, 100);
+                    for (Entity entity : nearbyEntities) {
+                        if (entity instanceof WitherSkeleton) {
+                            return true;
+                        }
+                    }
+                    return false;
+            }
+        }
+        return false;
     }
 
     /**

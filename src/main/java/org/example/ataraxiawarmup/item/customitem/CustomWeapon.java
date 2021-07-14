@@ -4,15 +4,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.example.ataraxiawarmup.Main;
 import org.example.ataraxiawarmup.item.customitem.ability.Ability;
 import org.example.ataraxiawarmup.mob.CustomMob;
+import org.example.ataraxiawarmup.player.CustomPlayer;
 
 import java.util.*;
 
@@ -25,8 +24,8 @@ public abstract class CustomWeapon extends CustomAttributableItem {
     private List<Integer> lowerBounds = new ArrayList<>();
     private List<Integer> upperBounds = new ArrayList<>();
 
-    public CustomWeapon(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore) {
-        super(material, name, rarity, recipeMatrix, attributeMap);
+    public CustomWeapon(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore) {
+        super(material, name, rarity, recipeMatrix, attributeMap, shapeless);
         ItemMeta itemMeta = getItemMeta();
         ItemMeta initialItemMeta = getItemMeta().clone();
         List<String> lore = itemMeta.getLore();
@@ -48,7 +47,7 @@ public abstract class CustomWeapon extends CustomAttributableItem {
                     this.lowerBounds.addAll(lowerBounds);
                     this.upperBounds.clear();
                     this.upperBounds.addAll(upperBounds);
-                    this.setRecipe(new CustomRecipe(recipeMatrix, new CustomItemStack(this)));
+                    this.setRecipe(new CustomRecipe(recipeMatrix, new CustomItemStack(this), shapeless));
                     ItemMeta itemMetaCopy = initialItemMeta.clone();
                     double multi = 1 * Math.pow(1.5, i) * Math.pow(1.7, rarity.getId());
                     for (ItemAttribute attribute : ItemAttribute.getAttributeOrder()) {
@@ -62,8 +61,10 @@ public abstract class CustomWeapon extends CustomAttributableItem {
                     }
                     // updating the item
                     List<String> loreCopy = itemMetaCopy.getLore();
-                    for (int e = 0; e < this.elements.size(); e++) {
-                        loreCopy.add(0, this.elements.get(e).getColoredChar() + " " + this.lowerBounds.get(e) + "-" + this.upperBounds.get(e));
+                    for (Element e : Element.getElementOrder()) {
+                        if (this.elements.contains(e)) {
+                            loreCopy.add(0, this.elements.get(this.elements.indexOf(e)).getColoredChar() + " " + this.lowerBounds.get(this.elements.indexOf(e)) + "-" + this.upperBounds.get(this.elements.indexOf(e)));
+                        }
                     }
 
                     for (ItemAttribute attribute : ItemAttribute.getAttributeOrder()) {
@@ -93,7 +94,6 @@ public abstract class CustomWeapon extends CustomAttributableItem {
                     this.setRecipe(null);
                     this.abilityLevel = i + 1;
                     this.ability = ability;
-                    // Bukkit.getPlayer("MexLr").sendMessage(itemMetaCopy.getDisplayName() + ", " + getAttributeValue(ItemAttribute.FIREPERCENT));
                     CUSTOM_ITEMS.put(ChatColor.stripColor(itemMetaCopy.getDisplayName()).toLowerCase(), this.clone());
                 }
             }
@@ -108,8 +108,10 @@ public abstract class CustomWeapon extends CustomAttributableItem {
 
         this.ability = Ability.NONE;
 
-        for (int i = 0; i < elements.size(); i++) {
-            lore.add(0, elements.get(i).getColoredChar() + " " + lowerBounds.get(i) + "-" + upperBounds.get(i));
+        for (Element e : Element.getElementOrder()) {
+            if (this.elements.contains(e)) {
+                lore.add(0, this.elements.get(this.elements.indexOf(e)).getColoredChar() + " " + this.lowerBounds.get(this.elements.indexOf(e)) + "-" + this.upperBounds.get(this.elements.indexOf(e)));
+            }
         }
 
         for (ItemAttribute attribute : ItemAttribute.getAttributeOrder()) {
@@ -142,12 +144,13 @@ public abstract class CustomWeapon extends CustomAttributableItem {
         itemMeta.setLore(lore);
         setItemMeta(itemMeta);
 
-        this.setRecipe(new CustomRecipe(recipeMatrix, new CustomItemStack(this)));
+        this.setRecipe(new CustomRecipe(recipeMatrix, new CustomItemStack(this), shapeless));
         removeRecipe();
 
         CUSTOM_ITEMS.put(ChatColor.stripColor(itemMeta.getDisplayName()).toLowerCase(), this);
     }
 
+    @Override
     public void addAttribute(ItemAttribute attribute, int value, boolean all) {
         if (attribute.getName().contains("Weapon Damage")) {
             Element element = Element.fromName(attribute.getName().split(" ")[0]);
@@ -167,32 +170,6 @@ public abstract class CustomWeapon extends CustomAttributableItem {
             }
         } else {
             addToAttribute(attribute, value);
-        }
-    }
-
-    public void addAllAttributes(ItemAttribute attribute, int value) {
-        switch (attribute) {
-            case ALLDEF:
-                for (ItemAttribute att : ItemAttribute.getAttributeOrder()) {
-                    if (att.getName().contains("Def")) {
-                        addAttribute(att, value, true);
-                    }
-                }
-                break;
-            case ALLPERCENT:
-                for (ItemAttribute att : ItemAttribute.getAttributeOrder()) {
-                    if (att.getName().contains("%")) {
-                        addAttribute(att, value, true);
-                    }
-                }
-                break;
-            case ALLDAMAGE:
-                for (ItemAttribute att : ItemAttribute.getAttributeOrder()) {
-                    if (att.getName().contains("Weapon Damage")) {
-                        addAttribute(att, value, true);
-                    }
-                }
-                break;
         }
     }
 
@@ -231,27 +208,40 @@ public abstract class CustomWeapon extends CustomAttributableItem {
         damaged.setInvulnerable(false);
         if (CustomMob.fromEntity(damaged) != null) {
             CustomMob damagedMob = CustomMob.fromEntity(damaged);
-            String damageString = getDamageString(damagedMob, multi, player);
-            int damageDealt = calculateDamage(damageString);
+            if (!damagedMob.isInvulnerable()) {
+                String damageString = getDamageString(damagedMob, multi, player);
+                int damageDealt = calculateDamage(damageString);
 
-            damagedMob.damage(damageDealt);
+                damagedMob.damage(damageDealt, player);
 
-            // armor stand for damage marker
-            Location loc = damagedMob.getEntity().getLocation();
-            loc.add(Math.random() - 0.5D, 1D, Math.random() - 0.5D);
+                CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+                customPlayer.regenHealth(customPlayer.getValueOfAttribute(ItemAttribute.LIFESTEAL));
+                Bukkit.getPlayer("MexLr").sendMessage("" + (double) (damagedMob.getHealth()) / damagedMob.getMaxHealth() * ((LivingEntity) damaged).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                // set the mob's health to customHealth / customMaxHealth * actualMaxHealth
+                double newHealth = (double) (damagedMob.getHealth()) / damagedMob.getMaxHealth() * ((LivingEntity) damaged).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                if (newHealth <= 1) {
+                    ((LivingEntity) damaged).setHealth(1);
+                } else {
+                    ((LivingEntity) damaged).setHealth(newHealth);
+                }
 
-            // spawn the armor stand with a random offset
-            ArmorStand armorStand = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
-            armorStand.setVisible(false);
-            armorStand.setGravity(false);
-            // set the armor stand to have the name of damage dealt, make it invisible, and remove the hitbox
-            armorStand.setMarker(true);
-            armorStand.setCustomName(damageString);
-            armorStand.setCustomNameVisible(true);
+                // armor stand for damage marker
+                Location loc = damagedMob.getEntity().getLocation();
+                loc.add(Math.random() - 0.5D, 1D, Math.random() - 0.5D);
 
-            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-                armorStand.remove();
-            }, 20);
+                // spawn the armor stand with a random offset
+                ArmorStand armorStand = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
+                armorStand.setVisible(false);
+                armorStand.setGravity(false);
+                // set the armor stand to have the name of damage dealt, make it invisible, and remove the hitbox
+                armorStand.setMarker(true);
+                armorStand.setCustomName(damageString);
+                armorStand.setCustomNameVisible(true);
+
+                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                    armorStand.remove();
+                }, 20);
+            }
         }
     }
 
@@ -300,45 +290,47 @@ public abstract class CustomWeapon extends CustomAttributableItem {
             damage *= multi;
 
             double percentBonus = 0;
-            Map<ItemAttribute, Integer> bonuses = ItemAttribute.getAttributeBonuses(player);
-            if (bonuses != null) {
-                switch (element) {
-                    case FIRE:
-                        if (bonuses.get(ItemAttribute.FIREPERCENT) != null) {
-                            percentBonus += bonuses.get(ItemAttribute.FIREPERCENT) / 100D;
-                        }
-                        break;
-                    case AIR:
-                        if (bonuses.get(ItemAttribute.AIRPERCENT) != null) {
-                            percentBonus += bonuses.get(ItemAttribute.AIRPERCENT) / 100D;
-                        }
-                        break;
-                    case THUNDER:
-                        if (bonuses.get(ItemAttribute.THUNDERPERCENT) != null) {
-                            percentBonus += bonuses.get(ItemAttribute.THUNDERPERCENT) / 100D;
-                        }
-                        break;
-                    case CHAOS:
-                        if (bonuses.get(ItemAttribute.CHAOSPERCENT) != null) {
-                            percentBonus += bonuses.get(ItemAttribute.CHAOSPERCENT) / 100D;
-                        }
-                        break;
-                    case EARTH:
-                        if (bonuses.get(ItemAttribute.EARTHPERCENT) != null) {
-                            percentBonus += bonuses.get(ItemAttribute.EARTHPERCENT) / 100D;
-                        }
-                        break;
-                    case WATER:
-                        if (bonuses.get(ItemAttribute.WATERPERCENT) != null) {
-                            percentBonus += bonuses.get(ItemAttribute.WATERPERCENT) / 100D;
-                        }
-                        break;
+            CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+            if (customPlayer != null) {
+                customPlayer.updateAttributes();
+                Map<ItemAttribute, Integer> bonuses = customPlayer.getAttributes();
+                if (bonuses != null) {
+                    switch (element) {
+                        case FIRE:
+                            if (bonuses.get(ItemAttribute.FIREPERCENT) != null) {
+                                percentBonus += bonuses.get(ItemAttribute.FIREPERCENT) / 100D;
+                            }
+                            break;
+                        case AIR:
+                            if (bonuses.get(ItemAttribute.AIRPERCENT) != null) {
+                                percentBonus += bonuses.get(ItemAttribute.AIRPERCENT) / 100D;
+                            }
+                            break;
+                        case THUNDER:
+                            if (bonuses.get(ItemAttribute.THUNDERPERCENT) != null) {
+                                percentBonus += bonuses.get(ItemAttribute.THUNDERPERCENT) / 100D;
+                            }
+                            break;
+                        case CHAOS:
+                            if (bonuses.get(ItemAttribute.CHAOSPERCENT) != null) {
+                                percentBonus += bonuses.get(ItemAttribute.CHAOSPERCENT) / 100D;
+                            }
+                            break;
+                        case EARTH:
+                            if (bonuses.get(ItemAttribute.EARTHPERCENT) != null) {
+                                percentBonus += bonuses.get(ItemAttribute.EARTHPERCENT) / 100D;
+                            }
+                            break;
+                        case WATER:
+                            if (bonuses.get(ItemAttribute.WATERPERCENT) != null) {
+                                percentBonus += bonuses.get(ItemAttribute.WATERPERCENT) / 100D;
+                            }
+                            break;
+                    }
                 }
             }
 
             damage *= (double) (1 + percentBonus);
-
-            Bukkit.getPlayer("MexLr").sendMessage("" + lowerNumber + ", " + higherNumber + ", " + multi + ", " + damageMulti + ", " + percentBonus);
 
             str.append(" ").append(element.getColoredChar()).append(" ").append(damage);
         }
@@ -369,10 +361,6 @@ public abstract class CustomWeapon extends CustomAttributableItem {
 
     public boolean hasAbility() {
         return this.ability != Ability.NONE ? true : false;
-    }
-
-    public void onFireballHitsMob(Player player, Entity damaged) {
-        onDamageMob(player, damaged, 10 * Math.pow(2, this.abilityLevel));
     }
 
     @Override

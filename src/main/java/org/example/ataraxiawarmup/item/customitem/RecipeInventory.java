@@ -52,6 +52,9 @@ public class RecipeInventory {
                 inventory.setItem(CraftingInventory.SLOTS[s], recipes.get(i).getMatrix()[s].toItemStack());
                 inventory.setItem(24, recipes.get(i).getResult().toItemStack());
             }
+            if (recipes.get(i).isShapeless()) {
+                inventory.setItem(8, Main.SHAPELESS_INDICATOR);
+            }
             inventories.add(inventory);
         }
     }
@@ -72,6 +75,9 @@ public class RecipeInventory {
                 }
                 inventory.setItem(CraftingInventory.SLOTS[s], recipeFor.getRecipe().getMatrix()[s].toItemStack());
                 inventory.setItem(24, recipeFor.getRecipe().getResult().toItemStack());
+            }
+            if (recipeFor.getRecipe().isShapeless()) {
+                inventory.setItem(8, Main.SHAPELESS_INDICATOR);
             }
             this.viewRecipeInventory = inventory;
         }

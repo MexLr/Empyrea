@@ -9,8 +9,8 @@ public abstract class CustomAttributableItem extends CustomCooldownableItem {
 
     private Map<ItemAttribute, Integer> attributeMap = new HashMap<>();
 
-    public CustomAttributableItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, Map<ItemAttribute, Integer> attributeMap) {
-        super(material, name, rarity, recipeMatrix);
+    public CustomAttributableItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, Map<ItemAttribute, Integer> attributeMap, boolean shapeless) {
+        super(material, name, rarity, recipeMatrix, shapeless);
         this.attributeMap.putAll(attributeMap);
     }
 
@@ -43,6 +43,36 @@ public abstract class CustomAttributableItem extends CustomCooldownableItem {
             setAttribute(attribute, this.attributeMap.get(attribute) + value);
         } else {
             setAttribute(attribute, value);
+        }
+    }
+
+    public void addAttribute(ItemAttribute attribute, int value, boolean all) {
+        addToAttribute(attribute, value);
+    }
+
+    public void addAllAttributes(ItemAttribute attribute, int value) {
+        switch (attribute) {
+            case ALLDEF:
+                for (ItemAttribute att : ItemAttribute.getAttributeOrder()) {
+                    if (att.getName().contains("Def")) {
+                        addAttribute(att, value, true);
+                    }
+                }
+                break;
+            case ALLPERCENT:
+                for (ItemAttribute att : ItemAttribute.getAttributeOrder()) {
+                    if (att.getName().contains("%") && att.getName().contains("Damage")) {
+                        addAttribute(att, value, true);
+                    }
+                }
+                break;
+            case ALLDAMAGE:
+                for (ItemAttribute att : ItemAttribute.getAttributeOrder()) {
+                    if (att.getName().contains("Weapon Damage")) {
+                        addAttribute(att, value, true);
+                    }
+                }
+                break;
         }
     }
 

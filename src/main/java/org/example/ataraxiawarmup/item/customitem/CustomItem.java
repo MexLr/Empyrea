@@ -3,6 +3,7 @@ package org.example.ataraxiawarmup.item.customitem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -18,12 +19,14 @@ public abstract class CustomItem implements Cloneable {
     private ItemMeta meta;
     private CustomRecipe recipe;
     private CustomItemStack[] recipeMatrix;
+    private boolean isShapeless;
 
-    public CustomItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix) {
+    public CustomItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless) {
         this.material = material;
         this.name = name;
         this.rarity = rarity;
         this.recipeMatrix = recipeMatrix;
+        this.isShapeless = shapeless;
 
         this.meta = new ItemStack(Material.BARRIER).getItemMeta();
 
@@ -38,6 +41,9 @@ public abstract class CustomItem implements Cloneable {
         List<String> lore = new ArrayList<>();
         lore.add("");
         lore.add(this.rarity.getLore());
+        this.meta.setUnbreakable(true);
+        this.meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        this.meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         this.meta.setLore(lore);
     }
 
@@ -62,7 +68,7 @@ public abstract class CustomItem implements Cloneable {
         if (this.recipeMatrix == null) {
             return;
         }
-        this.recipe = new CustomRecipe(this.recipeMatrix, this.toCustomItemStack());
+        this.recipe = new CustomRecipe(this.recipeMatrix, this.toCustomItemStack(), this.isShapeless);
     }
 
     /**

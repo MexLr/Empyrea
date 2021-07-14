@@ -22,5 +22,7 @@ public class CustomSkeleton extends EntitySkeleton {
 
     public void initPathfinder() {
         super.initPathfinder();
+
+        this.bP.a(1, new PathfinderGoalArrowAttack(this, 1.0D, 20, 60, 15.0F));
     }
 }

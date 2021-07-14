@@ -1,15 +1,24 @@
 package org.example.ataraxiawarmup.item.customitem;
 
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.inventory.ItemStack;
 import org.example.ataraxiawarmup.Main;
+import org.example.ataraxiawarmup.mob.CustomMob;
+import org.example.ataraxiawarmup.player.CustomPlayer;
 
 public class CustomItemListener implements Listener {
 
@@ -56,6 +65,13 @@ public class CustomItemListener implements Listener {
         if (event.getEntity() instanceof Player) {
             return;
         }
+        CustomMob customMob = CustomMob.fromEntity(event.getEntity());
+        if (customMob != null) {
+            if (customMob.isInvulnerable()) {
+                event.setCancelled(true);
+                return;
+            }
+        }
         if (event.getDamager() instanceof Player) {
             Player player = (Player) event.getDamager();
             ((LivingEntity) event.getEntity()).setNoDamageTicks(0);
@@ -65,9 +81,7 @@ public class CustomItemListener implements Listener {
             if (CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName()) != null) {
                 CustomItem heldItem = CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
                 if (heldItem instanceof CustomWeapon) {
-                    if (heldItem instanceof CustomBow) {
-
-                    } else {
+                    if (heldItem instanceof CustomSword) {
                         ((CustomWeapon) heldItem).onDamageMob(player, event.getEntity(), 1.0D);
                     }
                 }
@@ -80,6 +94,13 @@ public class CustomItemListener implements Listener {
         if (event.getEntity() instanceof Player) {
             return;
         }
+        CustomMob customMob = CustomMob.fromEntity(event.getEntity());
+        if (customMob != null) {
+            if (customMob.isInvulnerable()) {
+                event.setCancelled(true);
+                return;
+            }
+        }
         if (event.getDamager() instanceof Projectile) {
             Projectile projectile = (Projectile) event.getDamager();
             if (((Entity)projectile.getShooter()).getType().equals(EntityType.PLAYER)) {
@@ -91,10 +112,15 @@ public class CustomItemListener implements Listener {
                     CustomItem heldItem = CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
                     if (heldItem instanceof CustomBow) {
                         if (projectile instanceof Arrow) {
-                            ((CustomBow) heldItem).onArrowHitsMob(player, event.getEntity());
+                            double blocksTraveled = (int) event.getEntity().getLocation().distance(((Player) projectile.getShooter()).getLocation());
+                            double multi = (blocksTraveled * 5) / 100 + 1;
+                            Bukkit.getPlayer("MexLr").sendMessage("multi: " + multi);
+                            ((CustomBow) heldItem).onArrowHitsMob(player, event.getEntity(), multi);
                         }
-                        if (projectile instanceof Fireball) {
-                            ((CustomWeapon) heldItem).onFireballHitsMob(player, event.getEntity());
+                    }
+                    if (heldItem instanceof CustomShortbow) {
+                        if (projectile instanceof Arrow) {
+                            ((CustomShortbow) heldItem).onArrowHitsMob(player, event.getEntity());
                         }
                     }
                 }
@@ -109,4 +135,65 @@ public class CustomItemListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerEquipsArmor(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+        if (event.getSlot() > 35 && event.getSlot() < 40)
+        {
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                customPlayer.updateAttributes();
+            });
+        }
+        if (event.getCurrentItem() != null) {
+            if (!event.getCurrentItem().getType().equals(Material.AIR)) {
+                CustomItem customItem = CustomItem.fromName(event.getCurrentItem().getItemMeta().getDisplayName());
+                if (customItem != null) {
+                    if (customItem instanceof CustomArmor) {
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            customPlayer.updateAttributes();
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerRightClicksWithArmor(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+        CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+        if (event.getPlayer().getInventory().getItemInMainHand() != null) {
+            if (!event.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.AIR)) {
+                CustomItem customItem = CustomItem.fromName(event.getPlayer().getInventory().getItemInMainHand().getItemMeta().getDisplayName());
+                if (customItem != null) {
+                    if (customItem instanceof CustomArmor) {
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            customPlayer.updateAttributes();
+                        });
+                    } else {
+                        if (customItem instanceof CustomWeapon) {
+
+                        } else {
+                            event.setCancelled(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerEatsFood(PlayerItemConsumeEvent event) {
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPlayerSwitchesItem(PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
+        CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            customPlayer.updateAttributes();
+        });
+    }
 }

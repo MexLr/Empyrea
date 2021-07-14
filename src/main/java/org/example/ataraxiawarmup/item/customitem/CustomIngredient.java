@@ -12,7 +12,11 @@ import java.util.List;
 public class CustomIngredient extends CustomItem {
 
     public CustomIngredient(Material material, String name, Rarity rarity, CustomItemStack[] recipe, boolean isEnchanted) {
-        super(material, name, rarity, recipe);
+        this(material, name, rarity, recipe, isEnchanted, false);
+    }
+
+    public CustomIngredient(Material material, String name, Rarity rarity, CustomItemStack[] recipe, boolean isEnchanted, boolean shapeless) {
+        super(material, name, rarity, recipe, shapeless);
         ItemMeta itemMeta = getItemMeta();
         List<String> lore = itemMeta.getLore();
         lore.add("");

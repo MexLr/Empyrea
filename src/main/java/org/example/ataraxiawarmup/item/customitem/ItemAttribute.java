@@ -2,6 +2,7 @@ package org.example.ataraxiawarmup.item.customitem;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,37 +29,44 @@ public enum ItemAttribute {
     THUNDERDAMAGE("Thunder Weapon Damage", ChatColor.YELLOW),
     AIRDAMAGE("Air Weapon Damage", ChatColor.GRAY),
     CHAOSDAMAGE("Chaos Weapon Damage", ChatColor.DARK_PURPLE),
+    HEALTH("♥", ChatColor.DARK_RED),
+    LOOTBONUS("% Loot Bonus", ChatColor.WHITE),
+    LIFESTEAL(" Life Steal", ChatColor.RED),
+    ABILITYREGEN("% Ability Regen (Additive)", ChatColor.DARK_AQUA),
     ALLPERCENT("All", ChatColor.BOLD),
     ALLDEF("All", ChatColor.BOLD),
     ALLDAMAGE("All", ChatColor.BOLD);
 
-    private static List<ItemAttribute> attributeOrder = new ArrayList<>();
+    private static List<ItemAttribute> ATTRIBUTE_ORDER = new ArrayList<>();
 
     private String name;
     private ChatColor color;
 
     static {
-        attributeOrder.add(FIREPERCENT);
-        attributeOrder.add(FIREDEF);
-        attributeOrder.add(WATERPERCENT);
-        attributeOrder.add(WATERDEF);
-        attributeOrder.add(EARTHPERCENT);
-        attributeOrder.add(EARTHDEF);
-        attributeOrder.add(THUNDERPERCENT);
-        attributeOrder.add(THUNDERDEF);
-        attributeOrder.add(AIRPERCENT);
-        attributeOrder.add(AIRDEF);
-        attributeOrder.add(CHAOSPERCENT);
-        attributeOrder.add(CHAOSDEF);
-        attributeOrder.add(ALLPERCENT);
-        attributeOrder.add(ALLDEF);
-        attributeOrder.add(FIREDAMAGE);
-        attributeOrder.add(WATERDAMAGE);
-        attributeOrder.add(EARTHDAMAGE);
-        attributeOrder.add(THUNDERDAMAGE);
-        attributeOrder.add(AIRDAMAGE);
-        attributeOrder.add(CHAOSDAMAGE);
-        attributeOrder.add(ALLDAMAGE);
+        ATTRIBUTE_ORDER.add(FIREPERCENT);
+        ATTRIBUTE_ORDER.add(FIREDEF);
+        ATTRIBUTE_ORDER.add(WATERPERCENT);
+        ATTRIBUTE_ORDER.add(WATERDEF);
+        ATTRIBUTE_ORDER.add(EARTHPERCENT);
+        ATTRIBUTE_ORDER.add(EARTHDEF);
+        ATTRIBUTE_ORDER.add(THUNDERPERCENT);
+        ATTRIBUTE_ORDER.add(THUNDERDEF);
+        ATTRIBUTE_ORDER.add(AIRPERCENT);
+        ATTRIBUTE_ORDER.add(AIRDEF);
+        ATTRIBUTE_ORDER.add(CHAOSPERCENT);
+        ATTRIBUTE_ORDER.add(CHAOSDEF);
+        ATTRIBUTE_ORDER.add(ALLPERCENT);
+        ATTRIBUTE_ORDER.add(ALLDEF);
+        ATTRIBUTE_ORDER.add(LOOTBONUS);
+        ATTRIBUTE_ORDER.add(ABILITYREGEN);
+        ATTRIBUTE_ORDER.add(LIFESTEAL);
+        ATTRIBUTE_ORDER.add(FIREDAMAGE);
+        ATTRIBUTE_ORDER.add(WATERDAMAGE);
+        ATTRIBUTE_ORDER.add(EARTHDAMAGE);
+        ATTRIBUTE_ORDER.add(THUNDERDAMAGE);
+        ATTRIBUTE_ORDER.add(AIRDAMAGE);
+        ATTRIBUTE_ORDER.add(CHAOSDAMAGE);
+        ATTRIBUTE_ORDER.add(ALLDAMAGE);
     }
 
     ItemAttribute(String name, ChatColor color) {
@@ -76,20 +84,34 @@ public enum ItemAttribute {
 
     public static Map<ItemAttribute, Integer> getAttributeBonuses(Player player) {
         Map<ItemAttribute, Integer> bonuses = new HashMap<>();
-        if (player.getInventory().getItemInMainHand().getItemMeta() == null) {
-            return null;
-        }
-        CustomWeapon weapon = (CustomWeapon) CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
-        if (weapon != null) {
-            for (ItemAttribute attribute : weapon.getAttributes().keySet()) {
-                bonuses.put(attribute, weapon.getAttributes().get(attribute));
+        if (player.getInventory().getItemInMainHand().getItemMeta() != null) {
+            CustomWeapon weapon = (CustomWeapon) CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
+            if (weapon != null) {
+                for (ItemAttribute attribute : weapon.getAttributes().keySet()) {
+                    bonuses.put(attribute, weapon.getAttributes().get(attribute));
+                }
+            }
+            ItemStack[] armorPieces = player.getInventory().getArmorContents();
+            for (ItemStack item : armorPieces) {
+                if (item != null) {
+                    CustomArmor armor = (CustomArmor) CustomItem.fromName(item.getItemMeta().getDisplayName());
+                    if (armor != null) {
+                        for (ItemAttribute attribute : armor.getAttributes().keySet()) {
+                            if (bonuses.containsKey(attribute)) { // if the bonus is already there, add to it, otherwise directly set the bonus value
+                                bonuses.replace(attribute, armor.getAttributes().get(attribute) + bonuses.get(attribute));
+                            } else {
+                                bonuses.put(attribute, armor.getAttributes().get(attribute));
+                            }
+                        }
+                    }
+                }
             }
         }
         return bonuses;
     }
 
     public static List<ItemAttribute> getAttributeOrder() {
-        return attributeOrder;
+        return ATTRIBUTE_ORDER;
     }
 
 }

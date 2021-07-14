@@ -2,14 +2,18 @@ package org.example.ataraxiawarmup.item.customitem.ability;
 
 import org.bukkit.*;
 import org.bukkit.entity.*;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.example.ataraxiawarmup.Cooldowns;
 import org.example.ataraxiawarmup.Main;
 import org.example.ataraxiawarmup.item.customitem.CustomItem;
 import org.example.ataraxiawarmup.item.customitem.CustomWeapon;
+import org.example.ataraxiawarmup.item.customitem.Element;
 import org.example.ataraxiawarmup.item.customitem.ItemAttribute;
 import org.example.ataraxiawarmup.mob.CustomMob;
+import org.example.ataraxiawarmup.player.CustomPlayer;
 
 import java.util.*;
 
@@ -77,30 +81,71 @@ public enum Ability {
     public void performAbility(Player player, int level) {
         switch (this) {
             case METEOR:
-                if (Cooldowns.tryCooldown(player, "Fireball", 2000)) {
+                if (Cooldowns.tryCooldown(player, "Ability", 125)) {
+                    CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+                    if (!customPlayer.removeAbilityCharge(2 + level)) {
+                        return;
+                    }
+
+                    CustomWeapon heldWeapon = (CustomWeapon) CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
                     Entity target = null;
 
                     List<Entity> nearbyEntities = player.getNearbyEntities(15.0, 15.0, 15.0);
                     for (int i = 0; i < nearbyEntities.size(); i++) {
-                        if (nearbyEntities.get(i) instanceof Projectile || nearbyEntities.get(i) instanceof Player) {
-                            continue;
+                        if (nearbyEntities.get(i) instanceof LivingEntity) {
+                            if (nearbyEntities.get(i) instanceof Projectile || nearbyEntities.get(i) instanceof Player || nearbyEntities.get(i) instanceof ArmorStand) {
+                                continue;
+                            }
+                            target = nearbyEntities.get(i);
                         }
-                        target = nearbyEntities.get(i);
                     }
 
                     if (target != null) {
                         Random random = new Random();
                         int randomValue = random.nextInt(6) - 3;
-                        Location targetLocation = target.getLocation().add(new Location(player.getWorld(), randomValue, 0, randomValue));
-                        Fireball fireball = (Fireball) player.getWorld().spawnEntity(targetLocation.add(new Location(player.getWorld(), 0.0, 10.0, 0.0)), EntityType.FIREBALL);
+                        Location fireballLocation = target.getLocation().add(new Location(player.getWorld(), randomValue, 0, randomValue));
+                        Fireball fireball = (Fireball) player.getWorld().spawnEntity(fireballLocation.add(new Location(player.getWorld(), 0.0, 10.0, 0.0)), EntityType.FIREBALL);
                         Vector vector = target.getLocation().toVector().subtract(fireball.getLocation().toVector());
                         fireball.setDirection(vector);
                         fireball.setShooter(player);
+
+                        Entity runnableTarget = target;
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                if (!fireball.isValid()) {
+                                    runnableTarget.getWorld().spawnParticle(Particle.CRIMSON_SPORE, runnableTarget.getLocation(), 150, 0.5, 0.5, 0.5, 1D);
+                                    runnableTarget.getWorld().spawnParticle(Particle.WARPED_SPORE, runnableTarget.getLocation(), 150, 0.5, 0.5, 0.5, 1D);
+                                    runnableTarget.getWorld().spawnParticle(Particle.DRAGON_BREATH, runnableTarget.getLocation(), 150, 0.5, 0.5, 0.5, 0.25D);
+
+                                    List<Entity> entitiesToExplode = (List<Entity>) runnableTarget.getWorld().getNearbyEntities(runnableTarget.getLocation(), 3, 3, 3);
+
+                                    for (Entity entity : entitiesToExplode) {
+                                        if (entity instanceof LivingEntity) {
+                                            if (entity instanceof Player || entity instanceof ArmorStand) {
+                                                continue;
+                                            }
+                                            player.sendMessage(entity.getCustomName());
+                                            ((LivingEntity) entity).damage(0);
+                                            heldWeapon.onDamageMob(player, entity, 10 * Math.pow(1.5, level));
+                                        }
+                                    }
+                                    cancel();
+                                }
+                                Vector vector = runnableTarget.getLocation().toVector().subtract(fireball.getLocation().toVector());
+                                fireball.setDirection(vector);
+                            }
+                        }.runTaskTimer(Main.getInstance(), 0, 1);
                     }
                 }
                 break;
             case WATER:
-                if (Cooldowns.tryCooldown(player, "Wave", 1)) {
+                if (Cooldowns.tryCooldown(player, "Ability", 125)) {
+                    CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+                    if (!customPlayer.removeAbilityCharge(2 + level)) {
+                        return;
+                    }
+
                     Location location = player.getLocation();
                     CustomWeapon heldWeapon = (CustomWeapon) CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
                     List<Entity> damagedEntities = new ArrayList<>();
@@ -120,7 +165,7 @@ public enum Ability {
                                 if (entity instanceof Player) {
                                     continue;
                                 }
-                                heldWeapon.onDamageMob(player, entity, 10 * Math.pow(1.5, level));
+                                heldWeapon.onDamageMob(player, entity, 3 * Math.pow(1.5, level));
                                 if (entity instanceof LivingEntity) {
                                     ((LivingEntity) entity).damage(0);
                                 }
@@ -147,14 +192,61 @@ public enum Ability {
                 }
                 break;
             case EARTH:
+                if (Cooldowns.tryCooldown(player, "Ability", 125)) {
+                    CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+                    if (!customPlayer.removeAbilityCharge(2 + level)) {
+                        return;
+                    }
+
+                    Location location = player.getLocation();
+                    Location newLocation = location.clone();
+                    while (newLocation.getBlock().getType().isAir() && newLocation.getY() > 0) {
+                        newLocation.subtract(0, 1, 0);
+                    }
+                    newLocation.setY(Math.floor(newLocation.getY()));
+                    new BukkitRunnable() {
+                        int total = level * 2; // total iterations of healing, minus 1
+                        int current = 0; // current iterations of healing
+                        @Override
+                        public void run() {
+                            if (current >= total) {
+                                cancel();
+                            }
+
+                            Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB(255, (int) ((double) current / total * 200), (int) ((double) current / total * 200)), 1);
+                            int angle = 0;
+                            for (int i = 0; i < 90; i++) {
+                                angle += 4;
+                                Location particleLocation = new Location(newLocation.getWorld(), newLocation.getX() + Math.sin(angle * Math.PI / 180) * 2, newLocation.getY() + 1, newLocation.getZ() + Math.cos(angle * Math.PI / 180) * 2);
+                                particleLocation.getWorld().spawnParticle(Particle.REDSTONE, particleLocation, 1, 0, 0, 0, 0, dust, true);
+
+                            }
+                            List<Entity> entities = (List<Entity>) newLocation.getWorld().getNearbyEntities(newLocation.clone().add(0, 2, 0), 2, 2, 2);
+                            for (Entity entity : entities) {
+                                if (entity instanceof Player) {
+                                    CustomPlayer customPlayer = CustomPlayer.fromPlayer((Player) entity);
+                                    customPlayer.regenHealth(1D * level);
+                                }
+                            }
+
+                            current++;
+                        }
+                    }.runTaskTimer(Main.getInstance(), 0, 20);
+                }
                 break;
             case THUNDER:
-                if (Cooldowns.tryCooldown(player, "Chain Lightning", 1)) {
+                if (Cooldowns.tryCooldown(player, "Ability", 125)) {
+                    CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+                    if (!customPlayer.removeAbilityCharge(2 + level)) {
+                        return;
+                    }
+
                     CustomWeapon heldWeapon = (CustomWeapon) CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
                     new BukkitRunnable() {
                         int totalEntities = 2 + level;
                         int currentEntities = 0;
                         Location location = player.getLocation();
+                        Entity lastEntity = player;
                         @Override
                         public void run() {
                             boolean foundEntity = false;
@@ -178,23 +270,29 @@ public enum Ability {
                                     }
                                     // an entity is found - should be the nearest one that isn't charged, but a random one works just fine, as long as it also isn't charged
                                     CustomMob.fromEntity(entity).setCharged(true); // the entity is now charged
+
+                                    // show particles from the last entity to the next.
+                                    Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB(255, 255, 0), 1);
+                                    Location location1 = ((LivingEntity) entity).getEyeLocation().clone();
+                                    Location location2 = ((LivingEntity) lastEntity).getEyeLocation().clone();
+                                    Location difference = location2.clone().subtract(location1.clone());
+                                    for (int i = 0; i < 100; i++) {
+                                        Location newLocation = location2.subtract(new Location(difference.getWorld(), difference.getX() / 100, difference.getY() / 100, difference.getZ() / 100));
+                                        newLocation.getWorld().spawnParticle(Particle.REDSTONE, newLocation, 1, 0, 0, 0, dust);
+                                    }
+                                    lastEntity = entity;
+
                                     // create and start the particle runnable on the entity's eye location. this runnable will also cause an explosion when the entity dies.
                                     new BukkitRunnable() {
+                                        int ticks = 0;
                                         @Override
                                         public void run() {
-                                            Location eyeLocation = ((LivingEntity) entity).getEyeLocation();
-                                            Location locationOffset = new Location(player.getWorld(), Math.random() - 0.5D, Math.random() - 0.5D, Math.random() - 0.5D);
-                                            Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB(255, 255, 0), 1);
-                                            eyeLocation.getWorld().spawnParticle(Particle.REDSTONE, eyeLocation.clone().add(locationOffset), 1, 0, 0, 0, dust);
-                                            eyeLocation.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, eyeLocation.clone().add(locationOffset), 1, 0.5, 0.5, 0.5, 0.1D);
-                                            eyeLocation.getWorld().spawnParticle(Particle.SMOKE_NORMAL, eyeLocation.clone().add(locationOffset), 1, 0.5, 0.5, 0.5, 0D);
-                                            if (entity.isDead()) {
-                                                // extra effects
+                                            if (ticks > 100 || entity.isDead()) {
+                                                CustomMob.fromEntity(entity).setCharged(false);
                                                 entity.getWorld().playSound(entity.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
-                                                // entity.getWorld().spawnParticle(Particle.VILLAGER_ANGRY, entity.getLocation(), 10, 0.5, 0.5, 0.5);
-                                                entity.getWorld().spawnParticle(Particle.CRIMSON_SPORE, entity.getLocation(), 30, 0.5, 0.5, 0.5, 1D);
-                                                entity.getWorld().spawnParticle(Particle.WARPED_SPORE, entity.getLocation(), 30, 0.5, 0.5, 0.5, 1D);
-                                                entity.getWorld().spawnParticle(Particle.DRAGON_BREATH, entity.getLocation(), 30, 0.5, 0.5, 0.5, 0.25D);
+                                                entity.getWorld().spawnParticle(Particle.CRIMSON_SPORE, entity.getLocation(), 150, 0.5, 0.5, 0.5, 1D);
+                                                entity.getWorld().spawnParticle(Particle.WARPED_SPORE, entity.getLocation(), 150, 0.5, 0.5, 0.5, 1D);
+                                                entity.getWorld().spawnParticle(Particle.DRAGON_BREATH, entity.getLocation(), 150, 0.5, 0.5, 0.5, 0.25D);
 
                                                 List<Entity> entitiesToExplode = (List<Entity>) entity.getWorld().getNearbyEntities(entity.getLocation(), 3, 3, 3);
 
@@ -210,6 +308,16 @@ public enum Ability {
                                                 }
                                                 cancel();
                                             }
+
+                                            Location eyeLocation = ((LivingEntity) entity).getEyeLocation();
+                                            Location locationOffset = new Location(player.getWorld(), Math.random() - 0.5D, Math.random() - 0.5D, Math.random() - 0.5D);
+                                            Particle.DustOptions dust = new Particle.DustOptions(Color.fromRGB(255, 255, 0), 1);
+                                            eyeLocation.getWorld().spawnParticle(Particle.REDSTONE, eyeLocation.clone().add(locationOffset), 1, 0, 0, 0, dust);
+                                            eyeLocation.getWorld().spawnParticle(Particle.ELECTRIC_SPARK, eyeLocation.clone().add(locationOffset), 1, 0.5, 0.5, 0.5, 0.1D);
+                                            eyeLocation.getWorld().spawnParticle(Particle.SMOKE_NORMAL, eyeLocation.clone().add(locationOffset), 1, 0.5, 0.5, 0.5, 0D);
+
+                                            eyeLocation.getWorld().playSound(eyeLocation, Sound.BLOCK_BEEHIVE_WORK, 0.5f + ticks / 70, 1.0f);
+                                            ticks++;
                                         }
                                     }.runTaskTimer(Main.getInstance(), 0, 1);
                                     foundEntity = true; // an entity was found, so yes
@@ -228,8 +336,34 @@ public enum Ability {
                     }.runTaskTimer(Main.getInstance(), 0, 5);
                 }
                 break;
+            case AIR:
+                if (Cooldowns.tryCooldown(player, "Ability", 125)) {
+                    CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+                    if (!customPlayer.removeAbilityCharge(2 + level)) {
+                        return;
+                    }
+
+                    PotionEffect potionEffect = new PotionEffect(PotionEffectType.SPEED, 10 * level, level - 1, false, false, false);
+                    player.addPotionEffect(potionEffect);
+
+                    player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1.0f, 1.0f);
+                    player.getWorld().playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_SHOOT, 1.0f, 1.0f);
+                    player.getWorld().playSound(player.getLocation(), Sound.ENTITY_HORSE_BREATHE, 2.0f, 1.0f);
+
+                    Vector vector = player.getLocation().getDirection().multiply(0.5 + 0.5 * level);
+                    if (vector.getY() < 0.5) {
+                        vector.setY(0.5);
+                    }
+                    player.setVelocity(vector);
+                }
+                break;
             case CHAOS:
-                if (Cooldowns.tryCooldown(player, "Grips of Chaos", 1)) {
+                if (Cooldowns.tryCooldown(player, "Ability", 125)) {
+                    CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+                    if (!customPlayer.removeAbilityCharge(2 + level)) {
+                        return;
+                    }
+
                     Location location = player.getLocation();
                     CustomWeapon heldWeapon = (CustomWeapon) CustomItem.fromName(player.getInventory().getItemInMainHand().getItemMeta().getDisplayName());
                     List<Entity> nearbyEntities = (List<Entity>) location.getWorld().getNearbyEntities(location, 2 + level, 2 + level, 2 + level);

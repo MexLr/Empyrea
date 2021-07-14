@@ -6,8 +6,8 @@ import org.example.ataraxiawarmup.Cooldowns;
 
 public abstract class CustomCooldownableItem extends CustomItem {
 
-    public CustomCooldownableItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix) {
-        super(material, name, rarity, recipeMatrix);
+    public CustomCooldownableItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless) {
+        super(material, name, rarity, recipeMatrix, shapeless);
     }
 
     public boolean addToCooldown(Player player, String name, long length) {
