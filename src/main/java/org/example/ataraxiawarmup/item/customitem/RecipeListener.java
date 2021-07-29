@@ -66,6 +66,13 @@ public class RecipeListener implements Listener {
                                         // set the item in the inventory to the same item, minus the amount from the recipe matrix's item
                                         ItemStack addedItem = items1[i];
                                         addedItem.setAmount(addedItem.getAmount() - recipeMatrix[j].getAmount());
+                                        if (recipeMatrix[j].getItem() instanceof CustomIngredient) {
+                                            CustomIngredient ingredient = (CustomIngredient) recipeMatrix[j].getItem();
+                                            if (ingredient.getReplaces() != null) {
+                                                event.getInventory().setItem(craftingInventory.SLOTS[i], ingredient.getReplaces().toItemStack());
+                                                break;
+                                            }
+                                        }
                                         event.getInventory().setItem(craftingInventory.SLOTS[i], addedItem);
                                         break; // break out of this for loop, continuing the outer one (the given matrix loop)
                                     }
@@ -116,6 +123,13 @@ public class RecipeListener implements Listener {
                                             // set the item in the inventory to the same item, minus the amount from the recipe matrix's item
                                             ItemStack addedItem = items1[i];
                                             addedItem.setAmount(addedItem.getAmount() - recipeMatrix[j].getAmount());
+                                            if (recipeMatrix[j].getItem() instanceof CustomIngredient) {
+                                                CustomIngredient ingredient = (CustomIngredient) recipeMatrix[j].getItem();
+                                                if (ingredient.getReplaces() != null) {
+                                                    event.getInventory().setItem(craftingInventory.SLOTS[i], ingredient.getReplaces().toItemStack());
+                                                    break;
+                                                }
+                                            }
                                             event.getInventory().setItem(craftingInventory.SLOTS[i], addedItem);
                                             break; // break out of this for loop, continuing the outer one (the given matrix loop)
                                         }

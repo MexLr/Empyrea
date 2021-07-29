@@ -9,8 +9,11 @@ public abstract class CustomAttributableItem extends CustomCooldownableItem {
 
     private Map<ItemAttribute, Integer> attributeMap = new HashMap<>();
 
-    public CustomAttributableItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, Map<ItemAttribute, Integer> attributeMap, boolean shapeless) {
-        super(material, name, rarity, recipeMatrix, shapeless);
+    private int combatLevelReq;
+
+    public CustomAttributableItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, Map<ItemAttribute, Integer> attributeMap, boolean shapeless, int combatLevelReq, CustomItem replaces) {
+        super(material, name, rarity, recipeMatrix, shapeless, replaces);
+        this.combatLevelReq = combatLevelReq;
         this.attributeMap.putAll(attributeMap);
     }
 
@@ -74,6 +77,10 @@ public abstract class CustomAttributableItem extends CustomCooldownableItem {
                 }
                 break;
         }
+    }
+
+    public int getCombatLevelReq() {
+        return combatLevelReq;
     }
 
     @Override

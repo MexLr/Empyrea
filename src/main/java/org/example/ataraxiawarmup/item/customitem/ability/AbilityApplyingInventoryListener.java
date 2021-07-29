@@ -100,7 +100,10 @@ public class AbilityApplyingInventoryListener implements Listener {
                                 ItemStack savedItem = event.getCursor();
                                 event.getView().setCursor(null);
                                 Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                                    savedItem.setAmount(1);
                                     event.getView().setItem(event.getSlot(), savedItem);
+                                    savedItem.setAmount(savedItem.getAmount() - 1);
+                                    event.getView().setCursor(savedItem);
                                 });
                             } else {
                                 ItemStack savedItem = event.getCursor();

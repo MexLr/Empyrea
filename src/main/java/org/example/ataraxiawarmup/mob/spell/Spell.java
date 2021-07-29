@@ -14,7 +14,8 @@ public enum Spell {
     CHAOSFIRERAIN("Chaos Fire Rain", 2, ChaosFireRain.class),
     WEAKCHAOSLIGHTNING("Weak Chaos Lightning", 3, WeakChaosLightning.class),
     SHOOTWITHERSKULL("Shoot Wither Skull", 4, ShootWitherSkull.class),
-    DEATHRAY("Deathray", 5, Deathray.class);
+    DEATHRAY("Deathray", 5, Deathray.class),
+    CHAOSVEXSPAWN("Chaos Vex Spawn", 6, ChaosVexSpawn.class);
 
     private String name;
     private int id;

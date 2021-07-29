@@ -15,12 +15,12 @@ public class CustomShortbow extends CustomWeapon {
 
     private final int arrowAmount;
 
-    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore) {
-        this(name, rarity, recipeMatrix, false, arrowAmount, elements, lowerBounds, upperBounds, attributeMap, extraLore);
+    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore, int combatReq) {
+        this(name, rarity, recipeMatrix, false, arrowAmount, elements, lowerBounds, upperBounds, attributeMap, extraLore, combatReq);
     }
 
-    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore) {
-        super(Material.BOW, name, rarity, recipeMatrix, shapeless, elements, lowerBounds, upperBounds, attributeMap, extraLore);
+    public CustomShortbow(String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless, int arrowAmount, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore, int combatReq) {
+        super(Material.BOW, name, rarity, recipeMatrix, shapeless, elements, lowerBounds, upperBounds, attributeMap, extraLore, combatReq);
         this.arrowAmount = arrowAmount;
     }
 

@@ -19,7 +19,7 @@ public class CustomArtifact extends CustomItem {
     private int level;
 
     public CustomArtifact(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, Ability ability, int level) {
-        super(material, name, rarity, recipeMatrix, false);
+        super(material, name, rarity, recipeMatrix, false, null);
         this.ability = ability;
         this.level = level;
         ItemMeta itemMeta = getItemMeta();

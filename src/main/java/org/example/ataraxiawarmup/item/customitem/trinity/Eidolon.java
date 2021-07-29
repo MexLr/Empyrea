@@ -13,7 +13,7 @@ import java.util.Random;
 
 public class Eidolon extends CustomShortbow {
     public Eidolon(String name, Rarity rarity, CustomItemStack[] recipeMatrix, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap) {
-        super(name, rarity, recipeMatrix, 3, elements, lowerBounds, upperBounds, attributeMap, "");
+        super(name, rarity, recipeMatrix, 3, elements, lowerBounds, upperBounds, attributeMap, "", 100);
     }
 
     @Override

@@ -31,6 +31,7 @@ public enum ItemAttribute {
     CHAOSDAMAGE("Chaos Weapon Damage", ChatColor.DARK_PURPLE),
     HEALTH("♥", ChatColor.DARK_RED),
     LOOTBONUS("% Loot Bonus", ChatColor.WHITE),
+    XPBONUS("% XP Bonus", ChatColor.GREEN),
     LIFESTEAL(" Life Steal", ChatColor.RED),
     ABILITYREGEN("% Ability Regen (Additive)", ChatColor.DARK_AQUA),
     ALLPERCENT("All", ChatColor.BOLD),
@@ -43,6 +44,7 @@ public enum ItemAttribute {
     private ChatColor color;
 
     static {
+        ATTRIBUTE_ORDER.add(HEALTH);
         ATTRIBUTE_ORDER.add(FIREPERCENT);
         ATTRIBUTE_ORDER.add(FIREDEF);
         ATTRIBUTE_ORDER.add(WATERPERCENT);
@@ -58,8 +60,9 @@ public enum ItemAttribute {
         ATTRIBUTE_ORDER.add(ALLPERCENT);
         ATTRIBUTE_ORDER.add(ALLDEF);
         ATTRIBUTE_ORDER.add(LOOTBONUS);
-        ATTRIBUTE_ORDER.add(ABILITYREGEN);
+        ATTRIBUTE_ORDER.add(XPBONUS);
         ATTRIBUTE_ORDER.add(LIFESTEAL);
+        ATTRIBUTE_ORDER.add(ABILITYREGEN);
         ATTRIBUTE_ORDER.add(FIREDAMAGE);
         ATTRIBUTE_ORDER.add(WATERDAMAGE);
         ATTRIBUTE_ORDER.add(EARTHDAMAGE);

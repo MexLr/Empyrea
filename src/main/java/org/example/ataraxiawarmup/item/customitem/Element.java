@@ -26,6 +26,7 @@ public enum Element {
     private static final Map<String, Element> NAME_MAP = new HashMap<>();
 
     private static final ArrayList<Element> ELEMENT_ORDER = new ArrayList<>();
+    private static final ArrayList<Element> ELEMENT_REVERSE_ORDER = new ArrayList<>();
 
     static {
         for (Element type : values()) {
@@ -39,6 +40,14 @@ public enum Element {
         ELEMENT_ORDER.add(Element.AIR);
         ELEMENT_ORDER.add(Element.CHAOS);
         ELEMENT_ORDER.add(Element.NEUTRAL);
+
+        ELEMENT_REVERSE_ORDER.add(Element.NEUTRAL);
+        ELEMENT_REVERSE_ORDER.add(Element.CHAOS);
+        ELEMENT_REVERSE_ORDER.add(Element.AIR);
+        ELEMENT_REVERSE_ORDER.add(Element.THUNDER);
+        ELEMENT_REVERSE_ORDER.add(Element.EARTH);
+        ELEMENT_REVERSE_ORDER.add(Element.WATER);
+        ELEMENT_REVERSE_ORDER.add(Element.FIRE);
     }
 
     Element(String name, String weakAgainst, double damageMulti, String strongAgainst, double damageMulti2, ChatColor color, String representingChar) {
@@ -103,5 +112,9 @@ public enum Element {
 
     public static List<Element> getElementOrder() {
         return ELEMENT_ORDER;
+    }
+
+    public static List<Element> getReverseElementOrder() {
+        return ELEMENT_REVERSE_ORDER;
     }
 }

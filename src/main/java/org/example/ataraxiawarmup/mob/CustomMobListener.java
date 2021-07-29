@@ -6,10 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityCombustEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.EntityTransformEvent;
+import org.bukkit.event.entity.*;
 import org.example.ataraxiawarmup.Main;
 
 public class CustomMobListener implements Listener {
@@ -42,6 +39,7 @@ public class CustomMobListener implements Listener {
     @EventHandler
     public void onMobDies(EntityDeathEvent event) {
         event.getDrops().clear();
+        event.setDroppedExp(0);
     }
 
     @EventHandler
@@ -53,6 +51,19 @@ public class CustomMobListener implements Listener {
     public void onZombify(EntityTransformEvent event) {
         if (event.getTransformReason().equals(EntityTransformEvent.TransformReason.PIGLIN_ZOMBIFIED)) {
             event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onMobTakesFallDamage(EntityDamageEvent event) {
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.FALL)) {
+            if (CustomMob.fromEntity(event.getEntity()) != null) {
+                CustomMob mob = CustomMob.fromEntity(event.getEntity());
+                int fallDistance = (int) event.getEntity().getFallDistance();
+                double damage = 0.01 + (fallDistance * fallDistance * fallDistance) / 1000D;
+                damage *= mob.getMaxHealth();
+                mob.damage((int) damage, null);
+            }
         }
     }
 }

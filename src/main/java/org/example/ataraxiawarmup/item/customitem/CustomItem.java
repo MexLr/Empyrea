@@ -20,13 +20,15 @@ public abstract class CustomItem implements Cloneable {
     private CustomRecipe recipe;
     private CustomItemStack[] recipeMatrix;
     private boolean isShapeless;
+    private CustomItem replaces;
 
-    public CustomItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless) {
+    public CustomItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless, CustomItem replaces) {
         this.material = material;
         this.name = name;
         this.rarity = rarity;
         this.recipeMatrix = recipeMatrix;
         this.isShapeless = shapeless;
+        this.replaces = replaces;
 
         this.meta = new ItemStack(Material.BARRIER).getItemMeta();
 
@@ -180,6 +182,15 @@ public abstract class CustomItem implements Cloneable {
      */
     public Rarity getRarity() {
         return this.rarity;
+    }
+
+    /**
+     * Gets the item that replaces this one in a recipe. Example: empowered gemstone -> gemstone
+     *
+     * @return - The item that replaces this in a recipe.
+     */
+    public CustomItem getReplaces() {
+        return replaces;
     }
 
     /**

@@ -2,15 +2,14 @@ package org.example.ataraxiawarmup.mob;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.example.ataraxiawarmup.item.customitem.CustomArmor;
-import org.example.ataraxiawarmup.item.customitem.CustomItem;
-import org.example.ataraxiawarmup.item.customitem.CustomItemStack;
-import org.example.ataraxiawarmup.item.customitem.Rarity;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
+import org.example.ataraxiawarmup.item.customitem.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 public class CustomLootTable {
 
@@ -19,14 +18,22 @@ public class CustomLootTable {
     private List<Integer> quantities = new ArrayList<>();
     private Rarity maxRarity;
 
-    public CustomLootTable(List<CustomItem> items, List<Double> probabilities, List<Integer> quantities, Rarity maxRarity, double rarityFactor) {
+    public CustomLootTable(List<CustomItem> items, List<Double> probabilities, List<Integer> quantities, Rarity maxRarity, double rarityFactor, int level) {
         this.items.addAll(items);
         this.probabilities.addAll(probabilities);
         this.quantities.addAll(quantities);
         this.maxRarity = maxRarity;
         for (CustomItem item : CustomItem.CUSTOM_ITEMS.values()) {
             if (item instanceof CustomArmor) {
-                if (item.getRarity().getId() < this.maxRarity.getId()) {
+                if (item.getRarity().getId() <= this.maxRarity.getId() && Math.abs(((CustomArmor) item).getCombatLevelReq() - level) < 10) {
+                    this.items.add(item);
+                    this.probabilities.add(item.getRarity().getDropProbability() * rarityFactor);
+                    this.quantities.add(1);
+                    this.quantities.add(1);
+                }
+            }
+            if (item instanceof CustomWeapon) {
+                if (item.getRarity().getId() <= this.maxRarity.getId() && Math.abs(((CustomWeapon) item).getCombatLevelReq() - level) < 10 && ((CustomWeapon) item).isMisc()) {
                     this.items.add(item);
                     this.probabilities.add(item.getRarity().getDropProbability() * rarityFactor);
                     this.quantities.add(1);
@@ -62,10 +69,23 @@ public class CustomLootTable {
         return droppedItems;
     }
 
-    public void dropItems(Location location, double lootBonus) {
+    public void dropItems(Location location, double lootBonus, UUID forPlayer) {
         List<CustomItemStack> itemsToDrop = generateItems(lootBonus);
         for (CustomItemStack item : itemsToDrop) {
-            location.getWorld().dropItemNaturally(location, item.toItemStack());
+            Item droppedItem = location.getWorld().dropItemNaturally(location, item.toItemStack());
+            droppedItem.setOwner(forPlayer);
         }
+    }
+
+    public List<CustomItemStack> getItems() {
+        List<CustomItemStack> returnedItems = new ArrayList<>();
+        for (CustomItem item : items) {
+            if (item instanceof CustomIngredient) {
+                double quantity = ((quantities.get(items.indexOf(item) * 2) + quantities.get(items.indexOf(item) * 2 + 1)) / 2);
+                quantity *= probabilities.get(items.indexOf(item)) / 100D;
+                returnedItems.add(new CustomItemStack(item, (int) quantity));
+            }
+        }
+        return returnedItems;
     }
 }

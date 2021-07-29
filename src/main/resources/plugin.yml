@@ -27,3 +27,15 @@ commands:
     aliases: []
   startsong:
     aliases: [playsong]
+  createspawner:
+    aliases: [initspawner, initalizespawner, spawnerhere]
+  calccombat:
+    aliases: []
+  menu:
+    aliases: []
+  combatlevel:
+    aliases: []
+  home:
+    aliases: []
+  shop:
+    aliases: []

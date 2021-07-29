@@ -288,6 +288,9 @@ public enum Ability {
                                         @Override
                                         public void run() {
                                             if (ticks > 100 || entity.isDead()) {
+                                                if (CustomMob.fromEntity(entity) == null) {
+                                                    return;
+                                                }
                                                 CustomMob.fromEntity(entity).setCharged(false);
                                                 entity.getWorld().playSound(entity.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
                                                 entity.getWorld().spawnParticle(Particle.CRIMSON_SPORE, entity.getLocation(), 150, 0.5, 0.5, 0.5, 1D);

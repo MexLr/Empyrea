@@ -221,7 +221,19 @@ public class SummonPedestal {
 
     private void spawnParticles() {
         final boolean[] canSpawnBoss = new boolean[1];
-        Location centralLocation = new Location(this.stand.getWorld(), 3470.5, 93, -205);
+        Location centralLocation;
+        switch (getBoss()) {
+            case WITHER:
+                centralLocation = new Location(this.stand.getWorld(), 3470.5, 93, -205);
+                break;
+            case GOLEM:
+                centralLocation = new Location(this.stand.getWorld(), 4481.5, 94, -1221);
+                break;
+            default:
+                centralLocation = new Location(this.stand.getWorld(), 3470.5, 93, -205);
+                break;
+        }
+
         for (SummonPedestal pedestal : BOSS_MAP.get(this.boss)) {
             pedestal.setItem(new ItemStack(Material.AIR));
             new BukkitRunnable() {
@@ -268,10 +280,25 @@ public class SummonPedestal {
                     List<Entity> nearbyEntities = (List<Entity>) getLocation().getWorld().getNearbyEntities(centralLocation, 10, 10, 10);
                     for (Entity entity : nearbyEntities) {
                         if (entity instanceof Player) {
-                            entity.teleport(new Location(getLocation().getWorld(), 2477, 91, -197, 90, 0));
+                            switch (getBoss()) {
+                                case WITHER:
+                                    entity.teleport(new Location(getLocation().getWorld(), 2477, 91, -197, 90, 0));
+                                    break;
+                                case GOLEM:
+                                    entity.teleport(new Location(getLocation().getWorld(), 4476.5, 91, -204, 180, 0));
+                                    break;
+                            }
                         }
                     }
-                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> CustomMob.fromName(getBoss().getLevel() + getBoss().getName()).spawn(new Location(getLocation().getWorld(), 2469, 93, -197)), 10);
+                    switch (getBoss()) {
+                        case WITHER:
+                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> CustomMob.fromName(getBoss().getLevel() + getBoss().getName()).spawn(new Location(getLocation().getWorld(), 2469, 93, -197)), 10);
+                            break;
+                        case GOLEM:
+                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> CustomMob.fromName(getBoss().getLevel() + getBoss().getName()).spawn(new Location(getLocation().getWorld(), 4476, 91, -214)), 10);
+                            break;
+                    }
+
                     cancel();
                 }
             }

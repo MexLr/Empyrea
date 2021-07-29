@@ -10,12 +10,12 @@ import javax.swing.plaf.IconUIResource;
 import java.util.List;
 
 public abstract class CustomBaseMob extends CustomMob {
-    public CustomBaseMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template) {
-        super(name, entityType, elements, damage, level, defense, maxHealth, lootTables, template);
+    public CustomBaseMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template, double experience) {
+        super(name, entityType, elements, damage, level, defense, maxHealth, lootTables, template, experience);
     }
 
-    public CustomBaseMob(String name, BossType bossType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template) {
-        super(name, bossType, elements, damage, level, defense, maxHealth, lootTables, template);
+    public CustomBaseMob(String name, BossType bossType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template, double experience) {
+        super(name, bossType, elements, damage, level, defense, maxHealth, lootTables, template, experience);
     }
 
     @Override

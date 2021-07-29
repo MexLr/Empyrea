@@ -3,25 +3,21 @@ package org.example.ataraxiawarmup.mob;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.example.ataraxiawarmup.Main;
-import org.example.ataraxiawarmup.item.customitem.CustomWeapon;
 import org.example.ataraxiawarmup.item.customitem.Element;
 import org.example.ataraxiawarmup.item.customitem.ItemAttribute;
 import org.example.ataraxiawarmup.mob.boss.BossType;
 import org.example.ataraxiawarmup.player.CustomPlayer;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class CustomMob implements Cloneable {
 
     private static final Map<String, CustomMob> CUSTOM_MOB_TEMPLATES = new HashMap<>(); // for spawning in new CustomMobs
     private static final Map<Entity, CustomMob> CUSTOM_MOBS = new HashMap<>(); // for updating an existing entity with ease
+    private static final List<CustomMob> CUSTOM_MOB_LIST = new ArrayList<>(); // for spawners
 
     private final String name;
     private final EntityType entityType;
@@ -38,23 +34,26 @@ public abstract class CustomMob implements Cloneable {
     private boolean isGripped = false;
     private boolean isCasting = false;
 
+    private double experience;
+
     private Player lastDamager;
+    private List<UUID> damagers = new ArrayList<>();
 
     private ItemStack helmet;
     private ItemStack chestplate;
     private ItemStack leggings;
     private ItemStack boots;
 
-    public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables) {
-        this(name, entityType, elements, damage, level, defense, maxHealth, lootTables, false);
+    public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, double experience) {
+        this(name, entityType, elements, damage, level, defense, maxHealth, lootTables, false, experience);
     }
 
-    public CustomMob(String name, BossType bossType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template) {
-        this(name, bossType.getEntityType(), elements, damage, level, defense, maxHealth, lootTables, template);
+    public CustomMob(String name, BossType bossType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template, double experience) {
+        this(name, bossType.getEntityType(), elements, damage, level, defense, maxHealth, lootTables, template, experience);
         this.bossType = bossType;
     }
 
-    public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template) {
+    public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template, double experience) {
         this.name = name;
         this.entityType = entityType;
         this.elements = elements;
@@ -64,6 +63,7 @@ public abstract class CustomMob implements Cloneable {
         this.maxHealth = maxHealth;
         this.health = maxHealth;
         this.lootTables = lootTables;
+        this.experience = experience;
         if (template) {
             CUSTOM_MOB_TEMPLATES.put(ChatColor.stripColor(level + name.toLowerCase()), this);
         }
@@ -99,6 +99,12 @@ public abstract class CustomMob implements Cloneable {
         spawnedEntity.setCustomName(getCustomName());
         spawnedEntity.setCustomNameVisible(true);
         ((LivingEntity) spawnedEntity).setMaximumNoDamageTicks(0);
+        if (spawnedEntity instanceof Ageable) {
+            ((Ageable) spawnedEntity).setAdult();
+        }
+        if (spawnedEntity instanceof PiglinAbstract) {
+            ((PiglinAbstract) spawnedEntity).setImmuneToZombification(true);
+        }
         if (spawnedEntity instanceof Slime || spawnedEntity instanceof MagmaCube) {
             ((Slime) spawnedEntity).setSize((int) Math.round(Math.random() + 2));
         }
@@ -234,12 +240,26 @@ public abstract class CustomMob implements Cloneable {
     }
 
     /**
-     * Deals the specified amount of damage tawo the mob.
+     * Gets the combat experience that this mob gives when killed.
+     *
+     * @return - The combat experience that this mob gives on death
+     */
+    public double getExperience() {
+        return experience;
+    }
+
+    /**
+     * Deals the specified amount of damage to the mob.
      *
      * @param amount - The amount of damage that should be dealt
      */
     public void damage(int amount, Player player) {
-        this.lastDamager = player;
+        if (player != null) {
+            this.lastDamager = player;
+            if (!this.damagers.contains(player.getUniqueId())) {
+                this.damagers.add(player.getUniqueId());
+            }
+        }
         int newHealth = getHealth() - amount;
         if (newHealth < 0) {
             newHealth = 0;
@@ -261,19 +281,44 @@ public abstract class CustomMob implements Cloneable {
 
         CUSTOM_MOBS.remove(this.entity);
         if (lootTables != null) {
-            CustomPlayer lastPlayerToHit = CustomPlayer.fromPlayer(this.lastDamager);
-            for (CustomLootTable lootTable : lootTables) {
-                if (lootTable != null) {
-                    lootTable.dropItems(this.entity.getLocation(), lastPlayerToHit.getValueOfAttribute(ItemAttribute.LOOTBONUS));
+            for (UUID uuid : damagers) {
+                for (CustomLootTable lootTable : lootTables) {
+                    if (lootTable != null) {
+                        lootTable.dropItems(this.entity.getLocation(), CustomPlayer.fromPlayer(Bukkit.getPlayer(uuid)).getValueOfAttribute(ItemAttribute.LOOTBONUS), uuid);
+                    }
+                }
+                if (Bukkit.getPlayer(uuid) != null) {
+                    if (CustomPlayer.fromPlayer(Bukkit.getPlayer(uuid)) != null) {
+                        CustomPlayer.fromPlayer(Bukkit.getPlayer(uuid)).getCombatExpFromMob(this);
+                    }
+                }
+            }
+            if (damagers.size() == 0) {
+                List<Entity> nearbyPlayers = this.entity.getNearbyEntities(10, 10, 10);
+                Player player = null;
+                for (Entity entity : nearbyPlayers) {
+                    if (entity instanceof Player) {
+                        player = (Player) entity;
+                        break;
+                    }
+                }
+                if (player != null) {
+                    if (CustomPlayer.fromPlayer(player) != null) {
+                        for (CustomLootTable lootTable : lootTables) {
+                            if (lootTable != null) {
+                                lootTable.dropItems(this.entity.getLocation(), CustomPlayer.fromPlayer(player).getValueOfAttribute(ItemAttribute.LOOTBONUS), player.getUniqueId());
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
     /**
-     * Get the loot table for this mob.
+     * Get the loot table(s) for this mob.
      *
-     * @return - The mob's loot table
+     * @return - The mob's loot table(s)
      */
     public List<CustomLootTable> getLootTables() {
         return lootTables;
@@ -424,5 +469,9 @@ public abstract class CustomMob implements Cloneable {
      */
     public static CustomMob fromEntity(Entity entity) {
         return CUSTOM_MOBS.get(entity);
+    }
+
+    public static List<CustomMob> getCustomMobs() {
+        return CUSTOM_MOB_LIST;
     }
 }

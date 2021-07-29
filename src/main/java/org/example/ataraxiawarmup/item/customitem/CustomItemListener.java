@@ -4,18 +4,23 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.example.ataraxiawarmup.Main;
 import org.example.ataraxiawarmup.mob.CustomMob;
 import org.example.ataraxiawarmup.player.CustomPlayer;
@@ -129,6 +134,18 @@ public class CustomItemListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerShootsBow(ProjectileLaunchEvent event) {
+        if (event.getEntity() instanceof AbstractArrow && event.getEntity().getShooter() instanceof Player) {
+            ItemStack arrows = new ItemStack(Material.ARROW, 64);
+            ItemMeta arrowMeta = arrows.getItemMeta();
+            arrowMeta.addEnchant(Enchantment.DURABILITY, 0, true);
+            arrowMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
+            arrows.setItemMeta(arrowMeta);
+            ((Player) event.getEntity().getShooter()).getInventory().setItem(8, arrows);
+        }
+    }
+
+    @EventHandler
     public void onPlayerThrowsPearl(ProjectileLaunchEvent event) {
         if (event.getEntity() instanceof EnderPearl) {
             event.setCancelled(true);
@@ -194,6 +211,35 @@ public class CustomItemListener implements Listener {
         CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
         Bukkit.getScheduler().runTask(plugin, () -> {
             customPlayer.updateAttributes();
+            if (event.getPlayer().getInventory().getItem(event.getNewSlot()) == null) {
+                player.getInventory().setItem(8, CustomItem.fromName("menu").toItemStack());
+                return;
+            }
+            String itemName = event.getPlayer().getInventory().getItem(event.getNewSlot()).getItemMeta().getDisplayName();
+            if (CustomItem.fromName(itemName) != null) {
+                if (CustomItem.fromName(itemName) instanceof CustomBow) {
+                    ItemStack arrows = new ItemStack(Material.ARROW, 64);
+                    ItemMeta arrowMeta = arrows.getItemMeta();
+                    arrowMeta.addEnchant(Enchantment.DURABILITY, 0, true);
+                    arrowMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
+                    arrows.setItemMeta(arrowMeta);
+                    player.getInventory().setItem(8, arrows);
+                } else {
+                    player.getInventory().setItem(8, CustomItem.fromName("menu").toItemStack());
+                }
+            }
         });
+    }
+
+    @EventHandler
+    public void onExplosionKillsItem(EntityDamageEvent event) {
+        if (event.getCause().equals(EntityDamageEvent.DamageCause.ENTITY_EXPLOSION)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onExplosion(EntityExplodeEvent event) {
+        event.blockList().clear();
     }
 }

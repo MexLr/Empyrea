@@ -24,8 +24,12 @@ public abstract class CustomWeapon extends CustomAttributableItem {
     private List<Integer> lowerBounds = new ArrayList<>();
     private List<Integer> upperBounds = new ArrayList<>();
 
-    public CustomWeapon(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore) {
-        super(material, name, rarity, recipeMatrix, attributeMap, shapeless);
+    private List<String> extraLore = new ArrayList<>();
+
+    private boolean isMisc; // whether or not the weapon is misc -> true = drops from mobs, false = doesn't drop from mobs and has a recipe
+
+    public CustomWeapon(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless, List<Element> elements, List<Integer> lowerBounds, List<Integer> upperBounds, Map<ItemAttribute, Integer> attributeMap, String extraLore, int combatLevelReq) {
+        super(material, name, rarity, recipeMatrix, attributeMap, shapeless, combatLevelReq, null);
         ItemMeta itemMeta = getItemMeta();
         ItemMeta initialItemMeta = getItemMeta().clone();
         List<String> lore = itemMeta.getLore();
@@ -61,6 +65,8 @@ public abstract class CustomWeapon extends CustomAttributableItem {
                     }
                     // updating the item
                     List<String> loreCopy = itemMetaCopy.getLore();
+                    loreCopy.add(ChatColor.GRAY + "Combat Lv. Min: " + getCombatLevelReq());
+                    loreCopy.add("");
                     for (Element e : Element.getElementOrder()) {
                         if (this.elements.contains(e)) {
                             loreCopy.add(0, this.elements.get(this.elements.indexOf(e)).getColoredChar() + " " + this.lowerBounds.get(this.elements.indexOf(e)) + "-" + this.upperBounds.get(this.elements.indexOf(e)));
@@ -108,6 +114,9 @@ public abstract class CustomWeapon extends CustomAttributableItem {
 
         this.ability = Ability.NONE;
 
+        lore.add(ChatColor.GRAY + "Combat Lv. Min: " + getCombatLevelReq());
+        lore.add("");
+
         for (Element e : Element.getElementOrder()) {
             if (this.elements.contains(e)) {
                 lore.add(0, this.elements.get(this.elements.indexOf(e)).getColoredChar() + " " + this.lowerBounds.get(this.elements.indexOf(e)) + "-" + this.upperBounds.get(this.elements.indexOf(e)));
@@ -134,18 +143,24 @@ public abstract class CustomWeapon extends CustomAttributableItem {
             if (c > 20 + totalCharacters) {
                 if (extraLore.charAt(c) == ' ') {
                     lore.add(ChatColor.GRAY + loreString);
+                    this.extraLore.add(ChatColor.GRAY + loreString);
                     totalCharacters += c;
                     loreString = "";
                 }
             }
         }
         lore.add(ChatColor.GRAY + loreString);
+        this.extraLore.add(ChatColor.GRAY + loreString);
 
         itemMeta.setLore(lore);
         setItemMeta(itemMeta);
 
         this.setRecipe(new CustomRecipe(recipeMatrix, new CustomItemStack(this), shapeless));
         removeRecipe();
+
+        if (recipeMatrix == null) {
+            this.isMisc = true;
+        }
 
         CUSTOM_ITEMS.put(ChatColor.stripColor(itemMeta.getDisplayName()).toLowerCase(), this);
     }
@@ -209,38 +224,40 @@ public abstract class CustomWeapon extends CustomAttributableItem {
         if (CustomMob.fromEntity(damaged) != null) {
             CustomMob damagedMob = CustomMob.fromEntity(damaged);
             if (!damagedMob.isInvulnerable()) {
-                String damageString = getDamageString(damagedMob, multi, player);
-                int damageDealt = calculateDamage(damageString);
-
-                damagedMob.damage(damageDealt, player);
-
                 CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
-                customPlayer.regenHealth(customPlayer.getValueOfAttribute(ItemAttribute.LIFESTEAL));
-                Bukkit.getPlayer("MexLr").sendMessage("" + (double) (damagedMob.getHealth()) / damagedMob.getMaxHealth() * ((LivingEntity) damaged).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-                // set the mob's health to customHealth / customMaxHealth * actualMaxHealth
-                double newHealth = (double) (damagedMob.getHealth()) / damagedMob.getMaxHealth() * ((LivingEntity) damaged).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-                if (newHealth <= 1) {
-                    ((LivingEntity) damaged).setHealth(1);
-                } else {
-                    ((LivingEntity) damaged).setHealth(newHealth);
+                if (this.getCombatLevelReq() <= customPlayer.getCombatLevel()) {
+                    String damageString = getDamageString(damagedMob, multi, player);
+                    int damageDealt = calculateDamage(damageString);
+
+                    damagedMob.damage(damageDealt, player);
+
+                    customPlayer.regenHealth(customPlayer.getValueOfAttribute(ItemAttribute.LIFESTEAL));
+                    Bukkit.getPlayer("MexLr").sendMessage("" + (double) (damagedMob.getHealth()) / damagedMob.getMaxHealth() * ((LivingEntity) damaged).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                    // set the mob's health to customHealth / customMaxHealth * actualMaxHealth
+                    double newHealth = (double) (damagedMob.getHealth()) / damagedMob.getMaxHealth() * ((LivingEntity) damaged).getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                    if (newHealth <= 1) {
+                        ((LivingEntity) damaged).setHealth(1);
+                    } else {
+                        ((LivingEntity) damaged).setHealth(newHealth);
+                    }
+
+                    // armor stand for damage marker
+                    Location loc = damagedMob.getEntity().getLocation();
+                    loc.add(Math.random() - 0.5D, 1D, Math.random() - 0.5D);
+
+                    // spawn the armor stand with a random offset
+                    ArmorStand armorStand = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
+                    armorStand.setVisible(false);
+                    armorStand.setGravity(false);
+                    // set the armor stand to have the name of damage dealt, make it invisible, and remove the hitbox
+                    armorStand.setMarker(true);
+                    armorStand.setCustomName(damageString);
+                    armorStand.setCustomNameVisible(true);
+
+                    Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
+                        armorStand.remove();
+                    }, 20);
                 }
-
-                // armor stand for damage marker
-                Location loc = damagedMob.getEntity().getLocation();
-                loc.add(Math.random() - 0.5D, 1D, Math.random() - 0.5D);
-
-                // spawn the armor stand with a random offset
-                ArmorStand armorStand = (ArmorStand) loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
-                armorStand.setVisible(false);
-                armorStand.setGravity(false);
-                // set the armor stand to have the name of damage dealt, make it invisible, and remove the hitbox
-                armorStand.setMarker(true);
-                armorStand.setCustomName(damageString);
-                armorStand.setCustomNameVisible(true);
-
-                Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> {
-                    armorStand.remove();
-                }, 20);
             }
         }
     }
@@ -361,6 +378,14 @@ public abstract class CustomWeapon extends CustomAttributableItem {
 
     public boolean hasAbility() {
         return this.ability != Ability.NONE ? true : false;
+    }
+
+    public List<String> getExtraLore() {
+        return extraLore;
+    }
+
+    public boolean isMisc() {
+        return isMisc;
     }
 
     @Override

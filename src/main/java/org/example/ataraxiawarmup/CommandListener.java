@@ -7,14 +7,23 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.util.Vector;
 import org.example.ataraxiawarmup.item.customitem.*;
 import org.example.ataraxiawarmup.item.customitem.ability.AbilityApplyingInventory;
+import org.example.ataraxiawarmup.menu.MenuInventory;
 import org.example.ataraxiawarmup.mob.CustomMob;
 import org.example.ataraxiawarmup.mob.spell.Spell;
+import org.example.ataraxiawarmup.player.CustomPlayer;
+import org.example.ataraxiawarmup.player.PlayerHomeGenerator;
 import org.example.ataraxiawarmup.projectiletrail.ProjectileTrailApplierInventory;
+import org.example.ataraxiawarmup.shop.ShopInventory;
 import org.example.ataraxiawarmup.song.NBSPlayer;
+import org.example.ataraxiawarmup.spawner.InvisibleSpawner;
+import org.example.ataraxiawarmup.spawner.PlaceableSpawner;
 import org.example.ataraxiawarmup.spawner.SpawnerItem;
+
+import java.util.Locale;
 
 public class CommandListener implements CommandExecutor {
 
@@ -33,6 +42,12 @@ public class CommandListener implements CommandExecutor {
         plugin.getCommand("spell").setExecutor(this);
         plugin.getCommand("warp").setExecutor(this);
         plugin.getCommand("startsong").setExecutor(this);
+        plugin.getCommand("createspawner").setExecutor(this);
+        plugin.getCommand("calccombat").setExecutor(this);
+        plugin.getCommand("menu").setExecutor(this);
+        plugin.getCommand("combatlevel").setExecutor(this);
+        plugin.getCommand("home").setExecutor(this);
+        plugin.getCommand("shop").setExecutor(this);
     }
 
     @Override
@@ -59,6 +74,18 @@ public class CommandListener implements CommandExecutor {
             return handleWarpLocation(sender, args);
         if (cmd.getName().equalsIgnoreCase("startsong"))
             return handleStartSong(sender, args);
+        if (cmd.getName().equalsIgnoreCase("createspawner"))
+            return handleCreateSpawner(sender, args);
+        if (cmd.getName().equalsIgnoreCase("calccombat"))
+            return handleCalcCombat(sender, args);
+        if (cmd.getName().equalsIgnoreCase("menu"))
+            return handleOpenMenu(sender, args);
+        if (cmd.getName().equalsIgnoreCase("combatlevel"))
+            return handleSetCombatLevel(sender, args);
+        if (cmd.getName().equalsIgnoreCase("home"))
+            return handleHomeCommand(sender, args);
+        if (cmd.getName().equalsIgnoreCase("shop"))
+            return handleOpenShop(sender, args);
         return false;
     }
 
@@ -79,7 +106,7 @@ public class CommandListener implements CommandExecutor {
 
             switch (args[0]) {
                 case "SPAWNER":
-                    SpawnerItem spawnerItem = new SpawnerItem(CustomMob.fromName("1Spider"), 5);
+                    SpawnerItem spawnerItem = new SpawnerItem(CustomMob.fromName("1Spider"), 5, 1);
                     player.getInventory().addItem(spawnerItem.toItemStack());
                     break;
                 default:
@@ -169,9 +196,14 @@ public class CommandListener implements CommandExecutor {
                 player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
                 return false;
             }
-            double interval = Double.parseDouble(args[1]);
-
-            player.getInventory().addItem(new SpawnerItem(type, interval).toItemStack());
+            int level = Integer.parseInt(args[1]);
+            if (level <= 0 || level > 7) {
+                player.sendMessage("§cThat's not a valid level!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            PlaceableSpawner spawner = new PlaceableSpawner(type, level, null, Main.getInstance(), 0);
+            player.getInventory().addItem(spawner.toItem());
         }
         return true;
     }
@@ -335,7 +367,7 @@ public class CommandListener implements CommandExecutor {
 
     private boolean handleUseSpell(CommandSender sender, String[] args) {
         Player player = (Player) sender;
-        Spell.CHAOSFIRERAIN.use(CustomMob.fromName("1Spider"), player.getLocation(), true, player);
+        Spell.CHAOSVEXSPAWN.use(CustomMob.fromName("1Spider"), player.getLocation(), true, player);
         return true;
     }
     private boolean handleWarpLocation(CommandSender sender, String[] args) {
@@ -353,6 +385,36 @@ public class CommandListener implements CommandExecutor {
                 case "WITHER_SPAWN":
                     player.teleport(new Location(player.getWorld(), 3470, 91, -201, 180, 0));
                     break;
+                case "GOLEM_SPAWN":
+                    player.teleport(new Location(player.getWorld(), 4481, 91, -1217, 180, 0));
+                    break;
+                case "HOME":
+                    CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+                    if (customPlayer != null) {
+                        player.teleport(customPlayer.getPrivateAreaLocation());
+                    }
+                    break;
+                case "FIRE":
+                    player.teleport(new Location(player.getWorld(), -20000, 69, 10000, 90, 0));
+                    break;
+                case "WATER":
+                    player.teleport(new Location(player.getWorld(), -10000, 69, 10000, 90, 0));
+                    break;
+                case "EARTH":
+                    player.teleport(new Location(player.getWorld(), 0, 69, 10000, 90, 0));
+                    break;
+                case "THUNDER":
+                    player.teleport(new Location(player.getWorld(), 10000, 69, 10000, 90, 0));
+                    break;
+                case "AIR":
+                    player.teleport(new Location(player.getWorld(), 20000, 69, 10000, 90, 0));
+                    break;
+                case "CHAOS":
+                    player.teleport(new Location(player.getWorld(), 30000, 69, 10000, 90, 0));
+                    break;
+                case "ELEMENTAL":
+                    player.teleport(new Location(player.getWorld(), 50000, 69, 50000, 90, 0));
+                    break;
             }
         }
         return true;
@@ -360,8 +422,133 @@ public class CommandListener implements CommandExecutor {
 
     private boolean handleStartSong(CommandSender sender, String[] args) {
         Player player = (Player) sender;
-        NBSPlayer nbsPlayer = new NBSPlayer("eidolonboss1");
+        NBSPlayer nbsPlayer = new NBSPlayer("eidolonboss2");
         nbsPlayer.startSong(player);
+        return true;
+    }
+
+    private boolean handleCreateSpawner(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+
+            if (args.length < 1) {
+                player.sendMessage("§cPlease specify a valid mob to spawn!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+
+            if (args.length < 2) {
+                player.sendMessage("§cPlease specify a valid level of the mob!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+
+            if (args.length < 3) {
+                player.sendMessage("§cPlease specify a valid level of the spawner!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+
+            String input = args[0];
+            String[] splitInput = input.split("_");
+            input = "";
+            for (String word : splitInput) {
+                input += " " + word;
+            }
+            input = input.trim();
+
+            CustomMob spawnerMob = CustomMob.fromName(args[1] + input);
+
+            if (spawnerMob == null) {
+                player.sendMessage("§cThat's not a valid entity and/or level!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+
+            int level = Integer.parseInt(args[2]);
+            if (level <= 0 || level > 7) {
+                player.sendMessage("§cThat's not a valid level!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            InvisibleSpawner spawner = new InvisibleSpawner(spawnerMob, level, player.getLocation(), plugin, false);
+            spawner.startSpawning();
+        }
+        return true;
+    }
+
+    private boolean handleCalcCombat(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+            if (args.length < 1) {
+                player.sendMessage("§cPlease specify a combat level to calculate the exp of from the previous level! (Not total exp!)");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            int level = Integer.parseInt(args[0]);
+            if (level < 1) {
+                player.sendMessage("§cPlease specify a valid combat level!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            player.sendMessage("§3Combat exp from level §9" + (level - 1) + " §3to combat level §9" + level + "§3:" + customPlayer.calcCombatToLevel(level));
+        }
+        return true;
+    }
+
+    private boolean handleOpenMenu(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            player.openInventory(new MenuInventory(player).getInv());
+        }
+        return true;
+    }
+
+    private boolean handleSetCombatLevel(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+            if (args.length < 1) {
+                player.sendMessage("§cPlease specify a combat level to set yours to!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            int level = Integer.parseInt(args[0]);
+            if (level < 0) {
+                player.sendMessage("§cPlease specify a valid combat level!");
+                player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                return false;
+            }
+            customPlayer.setCombatLevel(level);
+        }
+        return true;
+    }
+
+    private boolean handleHomeCommand(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+            Location startingLocation = customPlayer.getPrivateAreaLocation();
+            PlayerHomeGenerator generator = customPlayer.getGenerator();
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("Generate")) {
+                    generator.generate();
+                }
+                if (args[0].equalsIgnoreCase("Reset")) {
+                    generator.reset();
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean handleOpenShop(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            String inventoryName = args[0].toUpperCase();
+            Inventory inventory = ShopInventory.getInventory(inventoryName);
+            ((Player) sender).openInventory(inventory);
+        }
         return true;
     }
 }

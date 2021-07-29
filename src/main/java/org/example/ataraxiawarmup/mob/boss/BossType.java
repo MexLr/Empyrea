@@ -20,7 +20,8 @@ public enum BossType {
     SPELLTESTER("Spell Tester", 100, EntityType.WITHER, SpellTester.class, List.of()),
     WITHER("The Wither", 75, EntityType.WITHER, CustomWither.class, List.of()),
     WITHERMINION("The Wither's Minion", 35, EntityType.WITHER_SKELETON, WitherMinion.class, List.of()),
-    LEADMINION("The Wither's Lead Minion", 35, EntityType.WITHER_SKELETON, LeadWitherMinion.class, List.of());
+    LEADMINION("The Wither's Lead Minion", 35, EntityType.WITHER_SKELETON, LeadWitherMinion.class, List.of()),
+    GOLEM("The Flaming Golem", 20, EntityType.IRON_GOLEM, CustomGolem.class, List.of());
 
     private String name;
     private int level;
