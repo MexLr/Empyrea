@@ -114,6 +114,21 @@ public abstract class CustomMob implements Cloneable {
                 ((LivingEntity) spawnedEntity).getEquipment().setHelmet(this.helmet);
             });
         }
+        if (this.chestplate != null) {
+            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                ((LivingEntity) spawnedEntity).getEquipment().setChestplate(this.chestplate);
+            });
+        }
+        if (this.leggings != null) {
+            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                ((LivingEntity) spawnedEntity).getEquipment().setLeggings(this.leggings);
+            });
+        }
+        if (this.boots != null) {
+            Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                ((LivingEntity) spawnedEntity).getEquipment().setBoots(this.boots);
+            });
+        }
         this.entity = spawnedEntity;
 
         CUSTOM_MOBS.put(this.entity, this);
@@ -346,6 +361,55 @@ public abstract class CustomMob implements Cloneable {
      */
     public void setHelmet(ItemStack item) {
         this.helmet = item;
+    }
+
+    /**
+     * Sets the entity's chestplate.
+     *
+     * @param item - the item to set the chestplate to
+     */
+    public void setChestplate(ItemStack item) {
+        this.chestplate = item;
+    }
+
+    /**
+     * Sets the entity's leggings.
+     *
+     * @param item - the item to set the leggings to
+     */
+    public void setLeggings(ItemStack item) {
+        this.leggings = item;
+    }
+
+    /**
+     * Sets the entity's boots.
+     *
+     * @param item - the item to set the boots to
+     */
+    public void setBoots(ItemStack item) {
+        this.boots = item;
+    }
+
+    public void setEquipment(ItemStack... items) {
+        if (items.length == 4) {
+            for (int i = 0; i < 4; i++) {
+                ItemStack itemStack = items[i];
+                if (items[i] != null) {
+                    if (i == 0) {
+                        setHelmet(itemStack);
+                    }
+                    if (i == 1) {
+                        setChestplate(itemStack);
+                    }
+                    if (i == 2) {
+                        setLeggings(itemStack);
+                    }
+                    if (i == 3) {
+                        setBoots(itemStack);
+                    }
+                }
+            }
+        }
     }
 
     /**

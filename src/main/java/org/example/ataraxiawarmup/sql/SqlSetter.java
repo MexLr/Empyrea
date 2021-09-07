@@ -1,8 +1,11 @@
 package org.example.ataraxiawarmup.sql;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.example.ataraxiawarmup.item.customitem.CustomWeapon;
+import org.example.ataraxiawarmup.item.customitem.Element;
+import org.example.ataraxiawarmup.item.customitem.ItemAttribute;
 import org.example.ataraxiawarmup.player.CustomPlayer;
-import org.example.ataraxiawarmup.spawner.InvisibleSpawner;
 import org.example.ataraxiawarmup.spawner.PlaceableSpawner;
 import org.example.ataraxiawarmup.spawner.Spawner;
 
@@ -13,6 +16,43 @@ import java.sql.SQLException;
 public class SqlSetter {
 
     MySQL mySQL = new MySQL();
+
+    public void addWeapon(CustomWeapon weapon) {
+        try {
+            SqlGetter getter = new SqlGetter();
+
+            PreparedStatement statement = mySQL.getConnection().prepareStatement("SELECT * FROM Weapons WHERE name=?");
+            statement.setString(1, ChatColor.stripColor(weapon.getItemMeta().getDisplayName()));
+
+            ResultSet results = statement.executeQuery();
+            results.next();
+
+            if (!getter.weaponNameExists(ChatColor.stripColor(weapon.getItemMeta().getDisplayName()))) {
+                PreparedStatement insert = mySQL.getConnection().prepareStatement("INSERT INTO Weapons (name, rarity, fireDamageLow, waterDamageLow, earthDamageLow, thunderDamageLow, airDamageLow, chaosDamageLow, neutralDamageLow, fireDamageHigh, waterDamageHigh, earthDamageHigh, thunderDamageHigh, airDamageHigh, chaosDamageHigh, neutralDamageHigh, fireDamagePercent, waterDamagePercent, earthDamagePercent, thunderDamagePercent, airDamagePercent, chaosDamagePercent, fireDefense, waterDefense, earthDefense, thunderDefense, airDefense, chaosDefense, health, lootBonus, xpBonus, lifeSteal, abilityRegen) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                insert.setString(1, ChatColor.stripColor(weapon.getItemMeta().getDisplayName()));
+                insert.setString(2, weapon.getRarity().getName());
+                for (Element element : Element.getElementOrder()) {
+                    if (weapon.getElements().contains(element)) {
+                        insert.setInt(element.getId() + 2, weapon.getLowerBounds().get(weapon.getElements().indexOf(element)));
+                        insert.setInt(element.getId() + 9, weapon.getUpperBounds().get(weapon.getElements().indexOf(element)));
+                        continue;
+                    }
+                    insert.setInt(element.getId() + 2, 0);
+                    insert.setInt(element.getId() + 9, 0);
+                }
+                for (ItemAttribute attribute : ItemAttribute.getAttributeOrder()) {
+                    if (weapon.getAttributes().values().contains(attribute)) {
+                        insert.setInt(16 + attribute.getId(), weapon.getAttributes().get(attribute));
+                    }
+                    insert.setInt(16 + attribute.getId(), 0);
+                }
+                insert.executeUpdate();
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void addSpawner(Spawner spawner) {
         try {

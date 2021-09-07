@@ -1,16 +1,14 @@
 package org.example.ataraxiawarmup;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.example.ataraxiawarmup.image.CustomItemRenderer;
 import org.example.ataraxiawarmup.item.customitem.*;
 import org.example.ataraxiawarmup.item.customitem.ability.Ability;
 import org.example.ataraxiawarmup.item.customitem.ability.AbilityApplyingInventoryListener;
@@ -23,19 +21,19 @@ import org.example.ataraxiawarmup.mob.*;
 import org.example.ataraxiawarmup.mob.boss.BossType;
 import org.example.ataraxiawarmup.player.CustomPlayer;
 import org.example.ataraxiawarmup.player.CustomPlayerListener;
+import org.example.ataraxiawarmup.player.PlayerChatListener;
 import org.example.ataraxiawarmup.projectiletrail.ApplierListener;
 import org.example.ataraxiawarmup.projectiletrail.ArrowShootListener;
+import org.example.ataraxiawarmup.shop.OrderCreator;
+import org.example.ataraxiawarmup.shop.ShopInventoryListener;
 import org.example.ataraxiawarmup.spawner.PlaceableSpawner;
-import org.example.ataraxiawarmup.spawner.Spawner;
 import org.example.ataraxiawarmup.spawner.SpawnerInitializer;
 import org.example.ataraxiawarmup.spawner.SpawnerListener;
-import org.example.ataraxiawarmup.spawner.menu.SpawnerMenuInventory;
 import org.example.ataraxiawarmup.spawner.menu.SpawnerMenuListener;
 import org.example.ataraxiawarmup.sql.MySQL;
 import org.example.ataraxiawarmup.sql.MySQLTableCreator;
 import org.example.ataraxiawarmup.sql.SqlSetter;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -46,7 +44,7 @@ public class Main extends JavaPlugin {
     public static final ItemStack CLOSE_BARRIER; // close barrier for inventories
     public static final ItemStack SHAPELESS_INDICATOR; // indicates whether or nota shown recipe is shapeless
 
-    public static final CustomIngredient CUSTOM_AIR = new CustomIngredient(Material.AIR, "aaaaaaaaaa", Rarity.NULL, null, false); // a null item without actually being null, for shapeless recipes
+    public static final CustomIngredient CUSTOM_AIR = new CustomIngredient(Material.AIR, "a", Rarity.NULL, null, false); // a null item without actually being null, for shapeless recipes
 
     private static Main instance;
 
@@ -95,18 +93,18 @@ public class Main extends JavaPlugin {
         new PedestalListener(this);
         new MenuInventoryListener(this);
         new SpawnerMenuListener(this);
+        new PlayerChatListener(this);
+        new ShopInventoryListener(this);
 
         MySQL mySQL = new MySQL();
         mySQL.mySqlSetup();
 
-        /**
         MySQLTableCreator creator = new MySQLTableCreator();
         try {
-            creator.createSpawnerTable();
+            creator.createWeaponsTable();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-         */
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             CustomPlayer customPlayer = new CustomPlayer(player);
@@ -159,7 +157,7 @@ public class Main extends JavaPlugin {
         CustomIngredient iron = new CustomIngredient(Material.IRON_INGOT, "Iron Ingot", Rarity.COMMON, null, false);
         CustomIngredient gold = new CustomIngredient(Material.GOLD_INGOT, "Gold Ingot", Rarity.COMMON, null, false);
         CustomIngredient blazeRod = new CustomIngredient(Material.BLAZE_ROD, "Blaze Rod", Rarity.COMMON, null, false);
-        CustomIngredient magmaCream = new CustomIngredient(Material.BLAZE_ROD, "Magma Cream", Rarity.COMMON, null, false);
+        CustomIngredient magmaCream = new CustomIngredient(Material.MAGMA_CREAM, "Magma Cream", Rarity.COMMON, null, false);
         CustomIngredient rottenFlesh = new CustomIngredient(Material.ROTTEN_FLESH, "Rotten Flesh", Rarity.COMMON, null, false);
         CustomIngredient bone = new CustomIngredient(Material.BONE, "Bone", Rarity.COMMON, null, false);
         CustomIngredient coal = new CustomIngredient(Material.COAL, "Coal", Rarity.COMMON, null, false);
@@ -901,8 +899,32 @@ public class Main extends JavaPlugin {
 
         CustomBaseMob spellTester = new CustomBaseMob("Spell Tester", BossType.SPELLTESTER, List.of(Element.FIRE, Element.CHAOS), 200, 100, 500, 50000, null, true, 1){};
 
+        CustomBaseMob drakomyr = new CustomBaseMob("Drakomyr", BossType.DRAKOMYR, List.of(Element.FIRE, Element.CHAOS), 1500, 80, 10000, 50000000, null, true, 1){};
+
+        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) skull.getItemMeta();
+        meta.setOwningPlayer(Bukkit.getOfflinePlayer("TrustMeNotAnAlt"));
+        skull.setItemMeta(meta);
+
+        ItemStack drakomyrChestplate = new ItemStack(Material.LEATHER_CHESTPLATE);
+        LeatherArmorMeta meta1 = (LeatherArmorMeta) drakomyrChestplate.getItemMeta();
+        meta1.setColor(Color.fromRGB(255, 0, 0));
+        drakomyrChestplate.setItemMeta(meta1);
+
+        ItemStack drakomyrLeggings = new ItemStack(Material.LEATHER_LEGGINGS);
+        LeatherArmorMeta meta2 = (LeatherArmorMeta) drakomyrLeggings.getItemMeta();
+        meta2.setColor(Color.fromRGB(255, 0, 0));
+        drakomyrLeggings.setItemMeta(meta2);
+
+        ItemStack drakomyrBoots = new ItemStack(Material.LEATHER_BOOTS);
+        LeatherArmorMeta meta3 = (LeatherArmorMeta) drakomyrBoots.getItemMeta();
+        meta3.setColor(Color.fromRGB(255, 0, 0));
+        drakomyrBoots.setItemMeta(meta3);
+
+        drakomyr.setEquipment(skull, drakomyrChestplate, drakomyrLeggings, drakomyrBoots);
+
         for (CustomItem item : CustomItem.CUSTOM_ITEMS.values()) {
-            item.createRecipe();
+            item.initialize();
         }
 
         // boss summon item initialization
@@ -918,8 +940,12 @@ public class Main extends JavaPlugin {
         }
 
         // spawner initialization
-        SpawnerInitializer initializer = new SpawnerInitializer();
-        Bukkit.getScheduler().runTask(this, initializer::initializeSpawners);
+        SpawnerInitializer spawnerInitializer = new SpawnerInitializer();
+        Bukkit.getScheduler().runTask(this, spawnerInitializer::initializeSpawners);
+
+        // order initialization
+        OrderCreator orderCreator = new OrderCreator();
+        Bukkit.getScheduler().runTask(this, orderCreator::initializeOrders);
 
         /**
         CustomItemRenderer renderer = new CustomItemRenderer();

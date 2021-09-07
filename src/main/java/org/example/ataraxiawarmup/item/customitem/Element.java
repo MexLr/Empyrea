@@ -6,13 +6,13 @@ import java.util.*;
 
 public enum Element {
 
-    NEUTRAL("Neutral", "Chaos", 0.5, "All", 1.0, ChatColor.GOLD, "✤"),
-    FIRE("Fire", "Water", 0.75, "Earth", 1.5, ChatColor.RED, "✹"),
-    WATER("Water", "Earth", 0.75, "Fire", 1.5, ChatColor.AQUA, "❉"),
-    EARTH("Earth", "Fire", 0.75, "Water", 1.5, ChatColor.DARK_GREEN, "✤"),
-    THUNDER("Thunder", "All", 1.0, "All", 1.0, ChatColor.YELLOW, "✦"), // randomly does from 50-200% damage
-    AIR("Air", "All", 1.0, "All", 1.0, ChatColor.GRAY, "❋"), // bypasses enemy defense
-    CHAOS("Chaos", "All", 1.0, "All", 2.0, ChatColor.DARK_PURPLE, "✯");
+    NEUTRAL("Neutral", "Chaos", 0.5, "All", 1.0, ChatColor.GOLD, "✤", 7),
+    FIRE("Fire", "Water", 0.75, "Earth", 1.5, ChatColor.RED, "✹", 1),
+    WATER("Water", "Earth", 0.75, "Fire", 1.5, ChatColor.AQUA, "❉", 2),
+    EARTH("Earth", "Fire", 0.75, "Water", 1.5, ChatColor.DARK_GREEN, "✤", 3),
+    THUNDER("Thunder", "All", 1.0, "All", 1.0, ChatColor.YELLOW, "✦", 4), // randomly does from 50-200% damage
+    AIR("Air", "All", 1.0, "All", 1.0, ChatColor.GRAY, "❋", 5), // bypasses enemy defense
+    CHAOS("Chaos", "All", 1.0, "All", 2.0, ChatColor.DARK_PURPLE, "✯", 6);
 
     private String name;
     private String weakAgainst;
@@ -21,6 +21,7 @@ public enum Element {
     private double damageMultiStrong;
     private ChatColor color;
     private String representingChar;
+    private final int id;
 
     private static final Map<String, Element> CHAR_MAP = new HashMap<>();
     private static final Map<String, Element> NAME_MAP = new HashMap<>();
@@ -50,7 +51,7 @@ public enum Element {
         ELEMENT_REVERSE_ORDER.add(Element.FIRE);
     }
 
-    Element(String name, String weakAgainst, double damageMulti, String strongAgainst, double damageMulti2, ChatColor color, String representingChar) {
+    Element(String name, String weakAgainst, double damageMulti, String strongAgainst, double damageMulti2, ChatColor color, String representingChar, int id) {
         this.name = name;
         this.weakAgainst = weakAgainst;
         this.damageMultiWeak = damageMulti;
@@ -58,11 +59,16 @@ public enum Element {
         this.damageMultiStrong = damageMulti2;
         this.color = color;
         this.representingChar = representingChar;
+        this.id = id;
     }
 
     public String getName() {
         return name;
     }
+
+    public int getId() {
+        return id;
+    };
 
     public String getWeakAgainst() {
         return weakAgainst;

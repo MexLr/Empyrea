@@ -30,8 +30,8 @@ public class CustomWither extends EntityWither {
             this.bP.a(4, new PathfinderGoalCastSpell(this, Spell.CHAOSFIRERAIN, false, 300, 400, EntityType.WITHER, true));
             this.bP.a(5, new PathfinderGoalCastSpell(this, Spell.CHAOSLIGHTNING, false, 200, 200, EntityType.PLAYER, true));
             this.bP.a(6, new PathfinderGoalCastSpell(this, Spell.DEATHRAY, false, 800, 800, EntityType.PLAYER, true));
-            this.bP.a(8, new PathfinderGoalFollowTarget(this, 0.6, 5, 0));
         });
+        this.bP.a(8, new PathfinderGoalNearestAttackableTarget<>(this, EntityHuman.class, true));
         this.bP.a(11, new PathfinderGoalFloat(this));
         this.bP.a(12, new PathfinderGoalLookAtPlayer(this, EntityHuman.class, 8.0F));
 

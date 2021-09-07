@@ -9,6 +9,21 @@ public class SqlGetter {
 
     MySQL mySQL = new MySQL();
 
+    public boolean weaponNameExists(String name) {
+        try {
+            PreparedStatement statement = mySQL.getConnection().prepareStatement("SELECT * FROM Weapons WHERE name=?");
+            statement.setString(1, name);
+
+            ResultSet results = statement.executeQuery();
+            if (results.next()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean spawnerIdExists(int id) {
         try {
             PreparedStatement statement = mySQL.getConnection().prepareStatement("SELECT * FROM Spawners WHERE id=?");

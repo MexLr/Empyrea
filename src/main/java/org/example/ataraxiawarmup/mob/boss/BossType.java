@@ -21,7 +21,8 @@ public enum BossType {
     WITHER("The Wither", 75, EntityType.WITHER, CustomWither.class, List.of()),
     WITHERMINION("The Wither's Minion", 35, EntityType.WITHER_SKELETON, WitherMinion.class, List.of()),
     LEADMINION("The Wither's Lead Minion", 35, EntityType.WITHER_SKELETON, LeadWitherMinion.class, List.of()),
-    GOLEM("The Flaming Golem", 20, EntityType.IRON_GOLEM, CustomGolem.class, List.of());
+    GOLEM("The Flaming Golem", 20, EntityType.IRON_GOLEM, CustomGolem.class, List.of()),
+    DRAKOMYR("Drakomyr", 80, EntityType.WITHER_SKELETON, Drakomyr.class, List.of());
 
     private String name;
     private int level;
@@ -44,12 +45,13 @@ public enum BossType {
             EntityInsentient entity = (EntityInsentient) constructor.newInstance(location);
             ((CraftWorld) location.getWorld()).getHandle().addEntity(entity, CreatureSpawnEvent.SpawnReason.CUSTOM);
             // start boss song
+            /**
             for (Entity nearbyEntity : entity.getBukkitEntity().getNearbyEntities(50, 50, 50)) {
                 if (nearbyEntity instanceof Player) {
                     NBSPlayer nbsPlayer = new NBSPlayer("eidolonboss1");
                     nbsPlayer.startSong((Player) nearbyEntity);
                 }
-            }
+            }*/
             return entity.getBukkitEntity();
         } catch (Exception e) {
             e.printStackTrace();

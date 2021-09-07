@@ -50,6 +50,10 @@ public class CustomItemStack {
         return item;
     }
 
+    public int getTotalValue() {
+        return (int) (item.getValue() * amount);
+    }
+
     public String toString() {
         return "CustomItemStack{" + item.getMaterial() + ", " + item.getItemMeta() + ", " + this.amount + "}";
     }

@@ -35,6 +35,7 @@ public class CustomPlayerListener implements Listener {
     public void onPlayerJoins(PlayerJoinEvent event) {
         CustomPlayer player = new CustomPlayer(event.getPlayer());
         event.getPlayer().getInventory().setItem(8, CustomItem.fromName("Menu").toItemStack());
+        event.getPlayer().setFoodLevel(20);
     }
 
     @EventHandler
@@ -100,7 +101,7 @@ public class CustomPlayerListener implements Listener {
             }
             if (event.getDamager() instanceof AbstractArrow) {
                 if (((Projectile) event.getDamager()).getShooter() instanceof Player) {
-                    ((Projectile) event.getDamager()).setBounce(true);
+                    event.getDamager().remove();
                     event.setCancelled(true);
                 }
             }

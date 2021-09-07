@@ -11,29 +11,29 @@ import java.util.Map;
 
 public enum ItemAttribute {
 
-    FIREPERCENT("% Fire Damage", ChatColor.RED),
-    WATERPERCENT("% Water Damage", ChatColor.AQUA),
-    EARTHPERCENT("% Earth Damage", ChatColor.DARK_GREEN),
-    THUNDERPERCENT("% Thunder Damage", ChatColor.YELLOW),
-    AIRPERCENT("% Air Damage", ChatColor.GRAY),
-    CHAOSPERCENT("% Chaos Damage", ChatColor.DARK_PURPLE),
-    FIREDEF(" Fire Defense", ChatColor.RED),
-    WATERDEF(" Water Defense", ChatColor.AQUA),
-    EARTHDEF(" Earth Defense", ChatColor.DARK_GREEN),
-    THUNDERDEF(" Thunder Defense", ChatColor.YELLOW),
-    AIRDEF(" Air Defense", ChatColor.GRAY),
-    CHAOSDEF(" Chaos Defense", ChatColor.DARK_PURPLE),
+    FIREPERCENT("% Fire Damage", ChatColor.RED, 1),
+    WATERPERCENT("% Water Damage", ChatColor.AQUA, 2),
+    EARTHPERCENT("% Earth Damage", ChatColor.DARK_GREEN, 3),
+    THUNDERPERCENT("% Thunder Damage", ChatColor.YELLOW, 4),
+    AIRPERCENT("% Air Damage", ChatColor.GRAY, 5),
+    CHAOSPERCENT("% Chaos Damage", ChatColor.DARK_PURPLE, 6),
+    FIREDEF(" Fire Defense", ChatColor.RED, 7),
+    WATERDEF(" Water Defense", ChatColor.AQUA, 8),
+    EARTHDEF(" Earth Defense", ChatColor.DARK_GREEN, 9),
+    THUNDERDEF(" Thunder Defense", ChatColor.YELLOW, 10),
+    AIRDEF(" Air Defense", ChatColor.GRAY, 11),
+    CHAOSDEF(" Chaos Defense", ChatColor.DARK_PURPLE, 12),
     FIREDAMAGE("Fire Weapon Damage", ChatColor.RED),
     WATERDAMAGE("Water Weapon Damage", ChatColor.AQUA),
     EARTHDAMAGE("Earth Weapon Damage", ChatColor.DARK_GREEN),
     THUNDERDAMAGE("Thunder Weapon Damage", ChatColor.YELLOW),
     AIRDAMAGE("Air Weapon Damage", ChatColor.GRAY),
     CHAOSDAMAGE("Chaos Weapon Damage", ChatColor.DARK_PURPLE),
-    HEALTH("♥", ChatColor.DARK_RED),
-    LOOTBONUS("% Loot Bonus", ChatColor.WHITE),
-    XPBONUS("% XP Bonus", ChatColor.GREEN),
-    LIFESTEAL(" Life Steal", ChatColor.RED),
-    ABILITYREGEN("% Ability Regen (Additive)", ChatColor.DARK_AQUA),
+    HEALTH("♥", ChatColor.DARK_RED, 13),
+    LOOTBONUS("% Loot Bonus", ChatColor.WHITE, 14),
+    XPBONUS("% XP Bonus", ChatColor.GREEN, 15),
+    LIFESTEAL(" Life Steal", ChatColor.RED, 16),
+    ABILITYREGEN("% Ability Regen (Additive)", ChatColor.DARK_AQUA, 17),
     ALLPERCENT("All", ChatColor.BOLD),
     ALLDEF("All", ChatColor.BOLD),
     ALLDAMAGE("All", ChatColor.BOLD);
@@ -42,6 +42,7 @@ public enum ItemAttribute {
 
     private String name;
     private ChatColor color;
+    private int id;
 
     static {
         ATTRIBUTE_ORDER.add(HEALTH);
@@ -73,8 +74,13 @@ public enum ItemAttribute {
     }
 
     ItemAttribute(String name, ChatColor color) {
+        this(name, color, -1);
+    }
+
+    ItemAttribute(String name, ChatColor color, int id) {
         this.name = name;
         this.color = color;
+        this.id = id;
     }
 
     public String getName() {
@@ -83,6 +89,10 @@ public enum ItemAttribute {
 
     public ChatColor getColor() {
         return color;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public static Map<ItemAttribute, Integer> getAttributeBonuses(Player player) {

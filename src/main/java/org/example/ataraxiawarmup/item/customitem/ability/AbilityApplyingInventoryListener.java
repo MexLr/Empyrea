@@ -55,6 +55,18 @@ public class AbilityApplyingInventoryListener implements Listener {
                 inputMeta.setDisplayName("");
                 inputThere.setItemMeta(inputMeta);
 
+                ItemStack outputSlot = new ItemStack(Material.BARRIER);
+                ItemMeta outputMeta = outputSlot.getItemMeta();
+                outputMeta.setDisplayName(ChatColor.RED + "Output");
+                outputSlot.setItemMeta(outputMeta);
+
+                boolean setOutput = event.getInventory().getItem(29) == null ? true : event.getInventory().getItem(34) == null ? true : false;
+                Bukkit.getScheduler().runTask(Main.getInstance(), () -> {
+                    if (setOutput) {
+                        event.getInventory().setItem(13, outputSlot);
+                    }
+                });
+
                 if (!event.getCursor().getType().equals(Material.AIR)) {
                     if (event.getCursor() == null) {
                         return;
@@ -158,11 +170,6 @@ public class AbilityApplyingInventoryListener implements Listener {
                     if (event.getSlot() == 13) {
                         if (event.getInventory().getItem(29) == null && event.getInventory().getItem(33) == null) {
                             ItemStack item = event.getInventory().getItem(13);
-
-                            ItemStack outputSlot = new ItemStack(Material.BARRIER);
-                            ItemMeta outputMeta = outputSlot.getItemMeta();
-                            outputMeta.setDisplayName(ChatColor.RED + "Output");
-                            outputSlot.setItemMeta(outputMeta);
 
                             event.getInventory().setItem(13, outputSlot);
 

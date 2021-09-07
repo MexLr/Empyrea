@@ -39,3 +39,11 @@ commands:
     aliases: []
   shop:
     aliases: []
+  playerhead:
+    aliases: []
+  party:
+    aliases: [p]
+  chat:
+    aliases: [c]
+  rotateorders:
+    aliases: [rotate]

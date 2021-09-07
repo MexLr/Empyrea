@@ -15,7 +15,7 @@ import java.util.List;
 
 public class ShopInventory {
 
-    private static final List<String> inventoryNames = List.of("Fire Items", "Water Items", "Earth Items", "Thunder Items", "Air Items", "Chaos Items", "Miscellaneous Ingredients", "Weapons");
+    private static final List<String> inventoryNames = List.of("Fire Items", "Water Items", "Earth Items", "Thunder Items", "Air Items", "Chaos Items", "Miscellaneous Ingredients", "Weapons", "Orders");
 
     private static Inventory baseInv;
     private static final Inventory fireInv;
@@ -132,6 +132,8 @@ public class ShopInventory {
                 return ingredientInv;
             case "WEAPONS":
                 return weaponInv;
+            case "ORDERS":
+                return getOrderInv();
         }
         return null;
     }
@@ -243,11 +245,49 @@ public class ShopInventory {
                 tab.setType(Material.DIAMOND_SWORD);
                 tabMeta.setDisplayName(ChatColor.DARK_AQUA + tabFor);
                 break;
+            case "Orders":
+                tab.setType(Material.CHAIN);
+                tabMeta.setDisplayName(ChatColor.DARK_GRAY + tabFor);
+                break;
             default:
                 break;
         }
         tab.setItemMeta(tabMeta);
         return tab;
+    }
+
+    public static Inventory getOrderInv() {
+        Inventory orderInv = Bukkit.createInventory(null, 54, "Orders");
+        orderInv.setContents(baseInv.getContents());
+        List<ItemStack> tabItems = getTabs("Orders");
+        for (int i = 0; i < tabItems.size(); i++) {
+            orderInv.setItem(i, tabItems.get(i));
+        }
+        ItemStack rewardClaim = new ItemStack(Material.CHEST);
+        ItemMeta itemMeta = rewardClaim.getItemMeta();
+        itemMeta.setDisplayName(ChatColor.AQUA + "Rewards");
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GREEN + "Click here to view your rewards\nfrom past orders!");
+        itemMeta.setLore(lore);
+        rewardClaim.setItemMeta(itemMeta);
+
+        orderInv.setItem(48, rewardClaim);
+
+        List<Order> activeOrders = new ArrayList<>();
+        activeOrders.addAll(Order.getActiveOrders());
+
+        for (int i = 0; i < activeOrders.size(); i++) {
+            int index = 18 + i * 2;
+            if (i > 3) {
+                index++;
+            }
+            if (i > 7) {
+                index = 39 + (i - 7) * 2;
+            }
+            orderInv.setItem(index, activeOrders.get(i).getItem());
+        }
+
+        return orderInv;
     }
 
 }

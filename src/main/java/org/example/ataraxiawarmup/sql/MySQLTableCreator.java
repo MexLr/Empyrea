@@ -21,4 +21,11 @@ public class MySQLTableCreator {
         createStatement.executeUpdate();
     }
 
+    public void createWeaponsTable() throws SQLException {
+        PreparedStatement dropStatement = mySQL.getConnection().prepareStatement("DROP TABLE IF EXISTS Weapons");
+        dropStatement.executeUpdate();
+        PreparedStatement createStatement = mySQL.getConnection().prepareStatement("CREATE TABLE IF NOT EXISTS Weapons (name varchar(30) PRIMARY KEY, rarity varchar(15), fireDamageLow int, waterDamageLow int, earthDamageLow int, thunderDamageLow int, airDamageLow int, chaosDamageLow int, neutralDamageLow int, fireDamageHigh int, waterDamageHigh int, earthDamageHigh int, thunderDamageHigh int, airDamageHigh int, chaosDamageHigh int, neutralDamageHigh int, fireDamagePercent smallint, waterDamagePercent smallint, earthDamagePercent smallint, thunderDamagePercent smallint, airDamagePercent smallint, chaosDamagePercent smallint, fireDefense smallint, waterDefense smallint, earthDefense smallint, thunderDefense smallint, airDefense smallint, chaosDefense smallint, health smallint, lootBonus smallint, xpBonus smallint, lifeSteal smallint, abilityRegen smallint)");
+        createStatement.executeUpdate();
+    }
+
 }

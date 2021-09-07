@@ -1,29 +1,47 @@
 package org.example.ataraxiawarmup;
 
+import com.mojang.authlib.GameProfile;
 import net.md_5.bungee.api.ChatColor;
+import net.minecraft.network.protocol.game.PacketPlayOutNamedEntitySpawn;
+import net.minecraft.network.protocol.game.PacketPlayOutPlayerInfo;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.EntityPlayer;
+import net.minecraft.server.level.PlayerInteractManager;
+import net.minecraft.server.level.WorldServer;
+import net.minecraft.server.network.PlayerConnection;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.v1_17_R1.CraftServer;
+import org.bukkit.craftbukkit.v1_17_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_17_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.Vector;
 import org.example.ataraxiawarmup.item.customitem.*;
 import org.example.ataraxiawarmup.item.customitem.ability.AbilityApplyingInventory;
 import org.example.ataraxiawarmup.menu.MenuInventory;
 import org.example.ataraxiawarmup.mob.CustomMob;
 import org.example.ataraxiawarmup.mob.spell.Spell;
+import org.example.ataraxiawarmup.party.Party;
+import org.example.ataraxiawarmup.player.Chat;
 import org.example.ataraxiawarmup.player.CustomPlayer;
 import org.example.ataraxiawarmup.player.PlayerHomeGenerator;
 import org.example.ataraxiawarmup.projectiletrail.ProjectileTrailApplierInventory;
+import org.example.ataraxiawarmup.shop.OrderRotator;
 import org.example.ataraxiawarmup.shop.ShopInventory;
 import org.example.ataraxiawarmup.song.NBSPlayer;
 import org.example.ataraxiawarmup.spawner.InvisibleSpawner;
 import org.example.ataraxiawarmup.spawner.PlaceableSpawner;
 import org.example.ataraxiawarmup.spawner.SpawnerItem;
 
-import java.util.Locale;
+import java.util.UUID;
 
 public class CommandListener implements CommandExecutor {
 
@@ -48,6 +66,10 @@ public class CommandListener implements CommandExecutor {
         plugin.getCommand("combatlevel").setExecutor(this);
         plugin.getCommand("home").setExecutor(this);
         plugin.getCommand("shop").setExecutor(this);
+        plugin.getCommand("playerhead").setExecutor(this);
+        plugin.getCommand("party").setExecutor(this);
+        plugin.getCommand("chat").setExecutor(this);
+        plugin.getCommand("rotateorders").setExecutor(this);
     }
 
     @Override
@@ -86,6 +108,14 @@ public class CommandListener implements CommandExecutor {
             return handleHomeCommand(sender, args);
         if (cmd.getName().equalsIgnoreCase("shop"))
             return handleOpenShop(sender, args);
+        if (cmd.getName().equalsIgnoreCase("playerhead"))
+            return handleGivePlayerHead(sender, args);
+        if (cmd.getName().equalsIgnoreCase("party"))
+            return handleParty(sender, args);
+        if (cmd.getName().equalsIgnoreCase("chat"))
+            return handleChangeChat(sender, args);
+        if (cmd.getName().equalsIgnoreCase("rotateorders"))
+            return handleRotateOrders(sender, args);
         return false;
     }
 
@@ -234,6 +264,7 @@ public class CommandListener implements CommandExecutor {
 
             CustomMob spawnedMob = CustomMob.fromName(args[1] + input);
             Location location = player.getLocation();
+
             if (input.equalsIgnoreCase("The Wither's Minions")) {
                 CustomMob minion1 = CustomMob.fromName("35The Wither's Minion");
                 CustomMob minion2 = CustomMob.fromName("35The Wither's Lead Minion");
@@ -545,10 +576,206 @@ public class CommandListener implements CommandExecutor {
 
     private boolean handleOpenShop(CommandSender sender, String[] args) {
         if (sender instanceof Player) {
+            if (args.length < 1) {
+                Inventory inventory = ShopInventory.getInventory("Orders");
+                ((Player) sender).openInventory(inventory);
+                return false;
+            }
             String inventoryName = args[0].toUpperCase();
             Inventory inventory = ShopInventory.getInventory(inventoryName);
             ((Player) sender).openInventory(inventory);
         }
         return true;
     }
+
+    private boolean handleGivePlayerHead(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            UUID uuid = Bukkit.getOfflinePlayer("TrustMeNotAnAlt").getUniqueId();
+            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+            SkullMeta meta = (SkullMeta) head.getItemMeta();
+            meta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
+            head.setItemMeta(meta);
+            ((Player) sender).getInventory().addItem(head);
+        }
+        return true;
+    }
+
+    private boolean handleParty(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+            if (args.length > 0) {
+                if (args[0].equalsIgnoreCase("accept")) {
+                    if (customPlayer.getInviteFrom() != null) {
+                        if (customPlayer.getInviteFrom().getParty().getMembers().contains(customPlayer)) {
+                            player.sendMessage(ChatColor.RED + "You are already in that player's party!");
+                            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                            return false;
+                        }
+                        customPlayer.getInviteFrom().getParty().addPlayer(customPlayer);
+                        player.sendMessage(ChatColor.GOLD + "You joined " + customPlayer.getInviteFrom().getPlayer().getName() + "'s party!");
+                    }
+                } else if (args[0].equalsIgnoreCase("invite")) {
+                    Party party = customPlayer.getParty();
+                    if (party == null) {
+                        party = new Party(customPlayer);
+                    }
+                    if (args.length < 2) {
+                        player.sendMessage(ChatColor.RED + "Please specify a player to invite to the party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    if (Bukkit.getPlayer(args[1]) == null) {
+                        player.sendMessage(ChatColor.RED + "That player is not online!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    CustomPlayer invitedPlayer = CustomPlayer.fromPlayer(Bukkit.getPlayer(args[1]));
+                    if (customPlayer.getParty().getMembers().contains(invitedPlayer)) {
+                        player.sendMessage(ChatColor.RED + "That player is already in your party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    party.invitePlayer(invitedPlayer);
+                } else if (args[0].equalsIgnoreCase("list")) {
+                    if (customPlayer.getParty() == null) {
+                        player.sendMessage(ChatColor.RED + "You are not currently in a party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    String leaderName = customPlayer.getParty().getLeader().getPlayer().getName();
+                    player.sendMessage(ChatColor.BLACK + "" + ChatColor.BOLD + "-------------------------");
+                    player.sendMessage(ChatColor.BLUE + "Party Leader: " + ChatColor.YELLOW + leaderName);
+                    String memberString = ChatColor.BLUE + "Members: ";
+                    for (CustomPlayer customPlayer1 : customPlayer.getParty().getMembers()) {
+                        memberString += customPlayer1.getPlayer().getName() + "  ";
+                    }
+                    player.sendMessage(memberString);
+                    player.sendMessage(ChatColor.BLACK + "" + ChatColor.BOLD + "-------------------------");
+                } else if (args[0].equalsIgnoreCase("leave")) {
+                    if (customPlayer.getParty() == null) {
+                        player.sendMessage(ChatColor.RED + "You are not currently in a party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    customPlayer.getParty().kickPlayer(customPlayer);
+                } else if (args[0].equalsIgnoreCase("transfer")) {
+                    if (customPlayer.getParty() == null) {
+                        player.sendMessage(ChatColor.RED + "You are not currently in a party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    if (customPlayer.getParty().getLeader() != customPlayer) {
+                        player.sendMessage(ChatColor.RED + "You are not the leader of this party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    if (args.length < 2) {
+                        player.sendMessage(ChatColor.RED + "Please specify a player to transfer leadership of this party to!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    if (Bukkit.getPlayer(args[1]) == null) {
+                        player.sendMessage(ChatColor.RED + "That player is not online!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    CustomPlayer transferredPlayer = CustomPlayer.fromPlayer(Bukkit.getPlayer(args[1]));
+                    if (!customPlayer.getParty().getMembers().contains(transferredPlayer)) {
+                        player.sendMessage(ChatColor.RED + "That player is not in your party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    customPlayer.getParty().transferLeader(transferredPlayer);
+                } else if (args[0].equalsIgnoreCase("kick")) {
+                    if (customPlayer.getParty() == null) {
+                        player.sendMessage(ChatColor.RED + "You are not currently in a party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    if (customPlayer.getParty().getLeader() != customPlayer) {
+                        player.sendMessage(ChatColor.RED + "You are not the leader of this party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    if (args.length < 2) {
+                        player.sendMessage(ChatColor.RED + "Please specify a player to kick from the party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    if (Bukkit.getPlayer(args[1]) == null) {
+                        player.sendMessage(ChatColor.RED + "That player is not online!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    CustomPlayer kickedPlayer = CustomPlayer.fromPlayer(Bukkit.getPlayer(args[1]));
+                    if (!customPlayer.getParty().getMembers().contains(kickedPlayer)) {
+                        player.sendMessage(ChatColor.RED + "That player is not in your party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    customPlayer.getParty().kickPlayer(kickedPlayer);
+                } else if (args[0].equalsIgnoreCase("disband")) {
+                    if (customPlayer.getParty() == null) {
+                        player.sendMessage(ChatColor.RED + "You are not currently in a party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    if (customPlayer.getParty().getLeader() != customPlayer) {
+                        player.sendMessage(ChatColor.RED + "You are not the leader of this party!");
+                        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        return false;
+                    }
+                    customPlayer.getParty().disband();
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean handleChangeChat(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            CustomPlayer customPlayer = CustomPlayer.fromPlayer(player);
+
+            if (args.length > 0) {
+                switch (args[0].toUpperCase()) {
+                    case "ALL":
+                    case "A":
+                        if (customPlayer.getChat().equals(Chat.ALL)) {
+                            player.sendMessage("§cYou are already in this chat.");
+                            return false;
+                        }
+                        player.sendMessage(ChatColor.GOLD + "You are now in " + ChatColor.AQUA + "ALL" + ChatColor.GOLD + " chat.");
+                        customPlayer.setChat(Chat.ALL);
+                        break;
+                    case "PARTY":
+                    case "P":
+                        if (customPlayer.getParty() == null) {
+                            player.sendMessage("§cYou are not in a party!");
+                            return false;
+                        }
+                        if (customPlayer.getChat().equals(Chat.PARTY)) {
+                            player.sendMessage("§cYou are already in this chat.");
+                            return false;
+                        }
+                        player.sendMessage(ChatColor.GOLD + "You are now in " + ChatColor.AQUA + "PARTY" + ChatColor.GOLD + " chat.");
+                        customPlayer.setChat(Chat.PARTY);
+                        break;
+                }
+            }
+
+        }
+        return true;
+    }
+
+    private boolean handleRotateOrders(CommandSender sender, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            OrderRotator rotator = new OrderRotator();
+            rotator.rotate();
+        }
+        return true;
+    }
+
 }

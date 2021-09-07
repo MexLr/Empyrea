@@ -13,7 +13,7 @@ public class MySQL {
     public void mySqlSetup() {
         host = "localhost";
         port = 3306;
-        database = "eidolon";
+        database = "empyrea";
         username = "root";
         password = "password";
 

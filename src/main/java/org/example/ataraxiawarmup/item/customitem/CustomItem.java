@@ -21,6 +21,7 @@ public abstract class CustomItem implements Cloneable {
     private CustomItemStack[] recipeMatrix;
     private boolean isShapeless;
     private CustomItem replaces;
+    private double value;
 
     public CustomItem(Material material, String name, Rarity rarity, CustomItemStack[] recipeMatrix, boolean shapeless, CustomItem replaces) {
         this.material = material;
@@ -43,6 +44,7 @@ public abstract class CustomItem implements Cloneable {
         List<String> lore = new ArrayList<>();
         lore.add("");
         lore.add(this.rarity.getLore());
+        lore.add("placeholder");
         this.meta.setUnbreakable(true);
         this.meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
         this.meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
@@ -64,13 +66,25 @@ public abstract class CustomItem implements Cloneable {
     public abstract void onUseRight(Player player);
 
     /**
-     * Creates and initializes the recipe for this item, if it has one
+     * Creates and initializes the recipe for this item, if it has one - also sets the value.
      */
-    public void createRecipe() {
-        if (this.recipeMatrix == null) {
-            return;
+    public void initialize() {
+        if (this.recipeMatrix != null) {
+            this.recipe = new CustomRecipe(this.recipeMatrix, this.toCustomItemStack(), this.isShapeless);
         }
-        this.recipe = new CustomRecipe(this.recipeMatrix, this.toCustomItemStack(), this.isShapeless);
+
+        int index = 2;
+        if (this instanceof CustomWeapon) {
+            index += ((CustomWeapon) this).getElements().size();
+            if (((CustomWeapon) this).hasAbility()) {
+                return;
+            }
+        }
+        this.value = getTotalValue();
+        List<String> lore = this.meta.getLore();
+
+        lore.set(index, ChatColor.LIGHT_PURPLE + "Value: " + this.value);
+        this.meta.setLore(lore);
     }
 
     /**
@@ -191,6 +205,46 @@ public abstract class CustomItem implements Cloneable {
      */
     public CustomItem getReplaces() {
         return replaces;
+    }
+
+    /**
+     * Gets the value of the item, determined by its rarity and recipe.
+     *
+     * @return - The value of the item.
+     */
+    public double getValue() {
+        return value;
+    }
+
+    /**
+     * Sets the value of the item, if it needs to change for any reason.
+     *
+     * @param value - The new value of the item.
+     */
+    public void setValue(double value) {
+        this.value = value;
+        int index = 2;
+        if (this instanceof CustomWeapon) {
+            index += ((CustomWeapon) this).getElements().size();
+        }
+        List<String> lore = this.meta.getLore();
+        lore.set(index, ChatColor.LIGHT_PURPLE + "Value: " + this.value);
+        this.meta.setLore(lore);
+    }
+
+    // recursive call
+    public double getTotalValue() {
+        double totalValue = 0;
+        if (recipeMatrix == null || recipeMatrix.length < 8) {
+            return Math.pow(this.rarity.getId(), 7);
+        }
+        for (CustomItemStack customItemStack : recipeMatrix) {
+            if (customItemStack == null) {
+                continue;
+            }
+            totalValue += customItemStack.getItem().getTotalValue() * customItemStack.getAmount();
+        }
+        return totalValue;
     }
 
     /**

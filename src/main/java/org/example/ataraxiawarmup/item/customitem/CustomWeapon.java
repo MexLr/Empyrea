@@ -12,6 +12,7 @@ import org.example.ataraxiawarmup.Main;
 import org.example.ataraxiawarmup.item.customitem.ability.Ability;
 import org.example.ataraxiawarmup.mob.CustomMob;
 import org.example.ataraxiawarmup.player.CustomPlayer;
+import org.example.ataraxiawarmup.sql.SqlSetter;
 
 import java.util.*;
 
@@ -33,6 +34,7 @@ public abstract class CustomWeapon extends CustomAttributableItem {
         ItemMeta itemMeta = getItemMeta();
         ItemMeta initialItemMeta = getItemMeta().clone();
         List<String> lore = itemMeta.getLore();
+        double baseValue = getTotalValue();
 
             for (Ability ability : Ability.values()) {
                 if (ability == Ability.NONE) {
@@ -100,6 +102,7 @@ public abstract class CustomWeapon extends CustomAttributableItem {
                     this.setRecipe(null);
                     this.abilityLevel = i + 1;
                     this.ability = ability;
+                    setValue(baseValue + Math.pow(576, i) * 128);
                     CUSTOM_ITEMS.put(ChatColor.stripColor(itemMetaCopy.getDisplayName()).toLowerCase(), this.clone());
                 }
             }
@@ -163,6 +166,9 @@ public abstract class CustomWeapon extends CustomAttributableItem {
         }
 
         CUSTOM_ITEMS.put(ChatColor.stripColor(itemMeta.getDisplayName()).toLowerCase(), this);
+
+        SqlSetter setter = new SqlSetter();
+        setter.addWeapon(this);
     }
 
     @Override
