@@ -5,27 +5,22 @@ import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerHarvestBlockEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.example.ataraxiawarmup.Main;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Objects;
 
 public class SpawnerListener implements Listener {
 
-    private Main plugin;
+    private final Main plugin;
 
     public SpawnerListener(Main plugin) {
         this.plugin = plugin;
@@ -75,9 +70,8 @@ public class SpawnerListener implements Listener {
 
     @EventHandler
     public void onPlayerClicksSpawner(PlayerInteractAtEntityEvent event) {
-        if (event.getRightClicked() instanceof ArmorStand) {
-            ArmorStand stand = (ArmorStand) event.getRightClicked();
-            if (stand.getCustomName().equals("Spawner")) {
+        if (event.getRightClicked() instanceof ArmorStand stand) {
+            if (Objects.equals(stand.getCustomName(), "Spawner")) {
                 PlaceableSpawner spawner = PlaceableSpawner.fromArmorStand(stand);
                 event.getPlayer().openInventory(spawner.getGUI(event.getPlayer()).getInv());
             }

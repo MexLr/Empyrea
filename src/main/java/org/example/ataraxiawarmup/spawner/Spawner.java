@@ -1,32 +1,26 @@
 package org.example.ataraxiawarmup.spawner;
 
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.example.ataraxiawarmup.Main;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.example.ataraxiawarmup.mob.CustomMob;
-import org.example.ataraxiawarmup.spawner.menu.SpawnerMenuInventory;
 import org.example.ataraxiawarmup.sql.SqlSetter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Spawner {
 
     private static final Map<String, List<Spawner>> CHUNK_MAP = new HashMap<>();
-    private static final Map<Inventory, Spawner> INVENTORY_SPAWNER_MAP = new HashMap<>();
 
     private CustomMob mob;
     private double interval;
     private boolean isActive = true;
-    private Location location;
+    private final Location location;
     private Entity entity;
 
     private int id;
@@ -35,14 +29,7 @@ public class Spawner {
 
     private int level;
 
-    private Main plugin;
-
-    public Spawner(Main plugin, Location location) {
-        this.mob = CustomMob.fromName("1Spider");
-        this.interval = 10.0;
-        this.location = location;
-        this.plugin = plugin;
-    }
+    private final Main plugin;
 
     /**
      * Constructor that takes a mob type and interval in seconds
@@ -109,12 +96,7 @@ public class Spawner {
 
     public void startSpawning() {
         if (location != null) {
-            Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable() {
-                @Override
-                public void run() {
-                    spawnMob();
-                }
-            }, 0L, (long) interval * 20);
+            Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, this::spawnMob, 0L, (long) interval * 20);
         }
     }
 
@@ -181,7 +163,7 @@ public class Spawner {
     }
 
     public boolean playerNearby() {
-        for (Entity entity : this.location.getWorld().getNearbyEntities(this.location, 20, 20, 20)) {
+        for (Entity entity : Objects.requireNonNull(this.location.getWorld()).getNearbyEntities(this.location, 20, 20, 20)) {
             if (entity instanceof Player) {
                 return true;
             }

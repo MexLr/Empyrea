@@ -5,7 +5,7 @@ import com.google.common.collect.Table;
 import org.bukkit.entity.Player;
 
 public class Cooldowns {
-    private static Table<String, String, Long> cooldowns = HashBasedTable.create();
+    private static final Table<String, String, Long> cooldowns = HashBasedTable.create();
 
     public static long getCooldown(Player player, String key) {
         return calculateRemainder(cooldowns.get(player.getName(), key));

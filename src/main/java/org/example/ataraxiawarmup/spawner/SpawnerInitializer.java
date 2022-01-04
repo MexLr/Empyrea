@@ -45,7 +45,6 @@ public class SpawnerInitializer {
                     boolean isPlaced = results.getBoolean("isPlaced");
 
                     if (isPlaced) {
-                        Bukkit.getPlayer("MexLr").sendMessage("" + maxId);
                         PlaceableSpawner placedSpawner;
                         placedSpawner = new PlaceableSpawner(CustomMob.fromName(mobLevel + mobName), level, location, Main.getInstance(), spawnerId);
                         placedSpawner.startSpawning();

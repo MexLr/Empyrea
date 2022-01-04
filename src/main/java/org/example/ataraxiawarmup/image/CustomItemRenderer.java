@@ -1,5 +1,6 @@
 package org.example.ataraxiawarmup.image;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.example.ataraxiawarmup.item.customitem.*;
 
@@ -16,15 +17,15 @@ public class CustomItemRenderer {
 
     public void drawItem(CustomAttributableItem item) throws IOException {
         String baseImagePath = "";
-        baseImagePath = "D:\\Games\\Eidolon\\items\\pngs\\";
+        baseImagePath = "D:\\Games\\Empyrea\\items\\pngs\\";
         baseImagePath += item.getMaterial().toString().toLowerCase() + ".png";
         String resultImagePath = "";
         if (item instanceof CustomArmor) {
-            resultImagePath = "D:\\Games\\Eidolon\\items\\armor\\";
+            resultImagePath = "D:\\Games\\Empyrea\\items\\armor\\";
             resultImagePath += ChatColor.stripColor(item.getItemMeta().getDisplayName()) + ".png";
         }
         if (item instanceof CustomWeapon) {
-            resultImagePath = "D:\\Games\\Eidolon\\items\\weapon\\";
+            resultImagePath = "D:\\Games\\Empyrea\\items\\weapon\\";
             resultImagePath += ChatColor.stripColor(item.getItemMeta().getDisplayName()) + ".png";
         }
 
@@ -43,6 +44,7 @@ public class CustomItemRenderer {
         BufferedImage result = new BufferedImage(512, size, BufferedImage.TYPE_INT_RGB);
         Graphics g = result.getGraphics();
 
+        Bukkit.getConsoleSender().sendMessage(baseImagePath);
         BufferedImage startingImage = ImageIO.read(new File(baseImagePath));
         g.drawImage(startingImage, 128, 128, null);
 

@@ -13,6 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+@SuppressWarnings("SuspiciousMethodCalls")
 public class SqlSetter {
 
     MySQL mySQL = new MySQL();
@@ -41,7 +42,7 @@ public class SqlSetter {
                     insert.setInt(element.getId() + 9, 0);
                 }
                 for (ItemAttribute attribute : ItemAttribute.getAttributeOrder()) {
-                    if (weapon.getAttributes().values().contains(attribute)) {
+                    if (weapon.getAttributes().containsValue(attribute)) {
                         insert.setInt(16 + attribute.getId(), weapon.getAttributes().get(attribute));
                     }
                     insert.setInt(16 + attribute.getId(), 0);
@@ -69,16 +70,11 @@ public class SqlSetter {
                 insert.setInt(1, spawner.getId());
                 insert.setString(2, spawner.getMobType().getName());
                 insert.setShort(3, (short) spawner.getMobType().getLevel());
-                Bukkit.getPlayer("MexLr").sendMessage("" + spawner.getLevel());
                 insert.setInt(4, spawner.getLevel());
                 insert.setDouble(5, spawner.getLocation().getX());
                 insert.setDouble(6, spawner.getLocation().getY());
                 insert.setDouble(7, spawner.getLocation().getZ());
-                if (spawner instanceof PlaceableSpawner) {
-                    insert.setBoolean(8, true);
-                } else {
-                    insert.setBoolean(8, false);
-                }
+                insert.setBoolean(8, spawner instanceof PlaceableSpawner);
                 insert.executeUpdate();
             }
 

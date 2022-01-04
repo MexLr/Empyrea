@@ -25,7 +25,7 @@ public class SpawnerMenuInventory {
 
     private static final Map<Inventory, Spawner> INVENTORY_SPAWNER_MAP = new HashMap<>();
 
-    private Inventory inv;
+    private final Inventory inv;
 
     public SpawnerMenuInventory(PlaceableSpawner spawner, Player player) {
         inv = Bukkit.createInventory(null, 27, spawner.getMobType().getName() + " Spawner " + ChatColor.AQUA + "(L" + spawner.getLevel() + ")");
@@ -40,6 +40,7 @@ public class SpawnerMenuInventory {
 
         ItemStack upgrade = new ItemStack(Material.RED_CONCRETE);
         ItemMeta upgradeMeta = upgrade.getItemMeta();
+        assert upgradeMeta != null;
         upgradeMeta.setDisplayName(ChatColor.AQUA + "Level up!");
         upgradeMeta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
         List<String> upgradeLore = new ArrayList<>();
@@ -55,12 +56,8 @@ public class SpawnerMenuInventory {
 
         for (CustomItemStack item : spawner.getItemsToLevelUp()) {
             int itemAmount;
-            if (playerItemMap.containsKey(item.getItem())) {
-                itemAmount = playerItemMap.get(item.getItem());
-            } else {
-                itemAmount = 0;
-            }
-            int reqAmount = 0;
+            itemAmount = playerItemMap.getOrDefault(item.getItem(), 0);
+            int reqAmount;
             if (item.getAmount() == 0) {
                 reqAmount = 1;
             } else {
@@ -85,6 +82,7 @@ public class SpawnerMenuInventory {
         for (int s = 0; s < 7; s++) {
             ItemStack spawnerItem = spawner.toItem(s + 1);
             ItemMeta spawnerMeta = spawnerItem.getItemMeta();
+            assert spawnerMeta != null;
             if (s + 1 == spawner.getLevel()) {
                 spawnerMeta.addEnchant(Enchantment.DURABILITY, 0, true);
             }
@@ -95,6 +93,7 @@ public class SpawnerMenuInventory {
 
         ItemStack removeItem = new ItemStack(Material.RED_CONCRETE);
         ItemMeta removeMeta = removeItem.getItemMeta();
+        assert removeMeta != null;
         removeMeta.setDisplayName(ChatColor.RED + "Remove");
         removeItem.setItemMeta(removeMeta);
 
@@ -122,9 +121,7 @@ public class SpawnerMenuInventory {
     }
 
     public static void removeInventory(Inventory inventory) {
-        if (INVENTORY_SPAWNER_MAP.containsKey(inventory)) {
-            INVENTORY_SPAWNER_MAP.remove(inventory);
-        }
+        INVENTORY_SPAWNER_MAP.remove(inventory);
     }
 
 }

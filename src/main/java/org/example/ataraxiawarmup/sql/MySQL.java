@@ -1,6 +1,5 @@
 package org.example.ataraxiawarmup.sql;
 
-import jdk.jshell.spi.ExecutionControl;
 import org.bukkit.Bukkit;
 
 import java.sql.*;
@@ -49,7 +48,7 @@ public class MySQL {
     }
 
     public void setConnection(Connection connection) {
-        this.connection = connection;
+        MySQL.connection = connection;
     }
 
 }

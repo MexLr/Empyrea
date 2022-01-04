@@ -1,6 +1,5 @@
 package org.example.ataraxiawarmup.spawner;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,7 +13,6 @@ import org.example.ataraxiawarmup.item.customitem.CustomItemStack;
 import org.example.ataraxiawarmup.mob.CustomLootTable;
 import org.example.ataraxiawarmup.mob.CustomMob;
 import org.example.ataraxiawarmup.spawner.menu.SpawnerMenuInventory;
-import org.example.ataraxiawarmup.sql.SqlGetter;
 import org.example.ataraxiawarmup.sql.SqlSetter;
 
 import java.util.*;
@@ -31,7 +29,7 @@ public class PlaceableSpawner extends Spawner {
             return;
         }
         this.blockLocation = new Location(location.getWorld(), location.getBlockX(), location.getBlockY() + 2, location.getBlockZ());
-        armorStand = (ArmorStand) location.getWorld().spawnEntity(location.clone().add(0, 2, 0), EntityType.ARMOR_STAND);
+        armorStand = (ArmorStand) Objects.requireNonNull(location.getWorld()).spawnEntity(location.clone().add(0, 2, 0), EntityType.ARMOR_STAND);
         //armorStand.setInvisible(true);
         armorStand.setCustomName("Spawner");
         armorStand.setGravity(false);
@@ -44,7 +42,7 @@ public class PlaceableSpawner extends Spawner {
             return;
         }
         this.blockLocation = new Location(location.getWorld(), location.getBlockX(), location.getBlockY() + 2, location.getBlockZ());
-        armorStand = (ArmorStand) location.getWorld().spawnEntity(location.clone().add(0, 2, 0), EntityType.ARMOR_STAND);
+        armorStand = (ArmorStand) Objects.requireNonNull(location.getWorld()).spawnEntity(location.clone().add(0, 2, 0), EntityType.ARMOR_STAND);
         //armorStand.setInvisible(true);
         armorStand.setCustomName("Spawner");
         armorStand.setGravity(false);
@@ -66,7 +64,7 @@ public class PlaceableSpawner extends Spawner {
             Block block = this.blockLocation.getBlock();
             block.breakNaturally(new ItemStack(Material.AIR));
             ItemStack droppedItem = toItem();
-            this.blockLocation.getWorld().dropItemNaturally(getLocation().clone().add(0, 2, 0), droppedItem);
+            Objects.requireNonNull(this.blockLocation.getWorld()).dropItemNaturally(getLocation().clone().add(0, 2, 0), droppedItem);
         }
     }
 
@@ -96,7 +94,7 @@ public class PlaceableSpawner extends Spawner {
     @Override
     public void load() {
         setActive(true);
-        armorStand = (ArmorStand) getLocation().getWorld().spawnEntity(getLocation().clone().add(0, 2, 0), EntityType.ARMOR_STAND);
+        armorStand = (ArmorStand) Objects.requireNonNull(getLocation().getWorld()).spawnEntity(getLocation().clone().add(0, 2, 0), EntityType.ARMOR_STAND);
         //armorStand.setInvisible(true);
         armorStand.setCustomName("Spawner");
         armorStand.setGravity(false);
@@ -114,7 +112,7 @@ public class PlaceableSpawner extends Spawner {
             mobDropItems.addAll(lootTable.getItems());
         }
         for (CustomItemStack item : mobDropItems) {
-            int itemAmount = 0;
+            int itemAmount;
             itemAmount = item.getAmount() * (getLevel() * 5 + 1) == 0 ? 1 : item.getAmount() * (getLevel() * 5 + 1);
             returnedItems.add(new CustomItemStack(item.getItem(), itemAmount));
         }

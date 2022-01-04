@@ -9,16 +9,14 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.example.ataraxiawarmup.image.CustomItemRenderer;
 import org.example.ataraxiawarmup.item.customitem.*;
 import org.example.ataraxiawarmup.item.customitem.ability.Ability;
 import org.example.ataraxiawarmup.item.customitem.ability.AbilityApplyingInventoryListener;
 import org.example.ataraxiawarmup.item.customitem.ability.CustomArtifact;
-import org.example.ataraxiawarmup.item.customitem.boss.PedestalListener;
-import org.example.ataraxiawarmup.item.customitem.boss.SummonPedestal;
 import org.example.ataraxiawarmup.item.customitem.trinity.Eidolon;
 import org.example.ataraxiawarmup.menu.MenuInventoryListener;
 import org.example.ataraxiawarmup.mob.*;
-import org.example.ataraxiawarmup.mob.boss.BossType;
 import org.example.ataraxiawarmup.player.CustomPlayer;
 import org.example.ataraxiawarmup.player.CustomPlayerListener;
 import org.example.ataraxiawarmup.player.PlayerChatListener;
@@ -34,6 +32,7 @@ import org.example.ataraxiawarmup.sql.MySQL;
 import org.example.ataraxiawarmup.sql.MySQLTableCreator;
 import org.example.ataraxiawarmup.sql.SqlSetter;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
 
@@ -51,23 +50,28 @@ public class Main extends JavaPlugin {
     static {
         FILLER_ITEM = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta fillerMeta = FILLER_ITEM.getItemMeta();
+        assert fillerMeta != null;
         fillerMeta.setDisplayName(" ");
         fillerMeta.setLore(null);
         FILLER_ITEM.setItemMeta(fillerMeta);
 
         BACK_ARROW = new ItemStack(Material.ARROW);
         ItemMeta backMeta = BACK_ARROW.getItemMeta();
+        assert backMeta != null;
         backMeta.setDisplayName(ChatColor.WHITE + "Back");
         BACK_ARROW.setItemMeta(backMeta);
 
         CLOSE_BARRIER = new ItemStack(Material.BARRIER);
         ItemMeta closeMeta = CLOSE_BARRIER.getItemMeta();
+        assert closeMeta != null;
         closeMeta.setDisplayName(ChatColor.RED + "Close");
         closeMeta.setLore(null);
         CLOSE_BARRIER.setItemMeta(closeMeta);
 
         SHAPELESS_INDICATOR = new ItemStack(Material.WARPED_SIGN);
-        ItemMeta shapelessMeta = SHAPELESS_INDICATOR.getItemMeta();
+        ItemMeta shapelessMeta;
+        shapelessMeta = SHAPELESS_INDICATOR.getItemMeta();
+        assert shapelessMeta != null;
         shapelessMeta.setDisplayName(ChatColor.AQUA + "This recipe is shapeless.");
         shapelessMeta.setLore(null);
         SHAPELESS_INDICATOR.setItemMeta(shapelessMeta);
@@ -90,7 +94,6 @@ public class Main extends JavaPlugin {
         new CustomMobListener(this);
         new AbilityApplyingInventoryListener(this);
         new CustomPlayerListener(this);
-        new PedestalListener(this);
         new MenuInventoryListener(this);
         new SpawnerMenuListener(this);
         new PlayerChatListener(this);
@@ -108,9 +111,7 @@ public class Main extends JavaPlugin {
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             CustomPlayer customPlayer = new CustomPlayer(player);
-            Bukkit.getScheduler().runTask(this, () -> {
-                customPlayer.updateAttributes();
-            });
+            Bukkit.getScheduler().runTask(this, customPlayer::updateAttributes);
         }
 
         new BukkitRunnable() {
@@ -124,14 +125,6 @@ public class Main extends JavaPlugin {
             }
         }.runTaskTimer(this, 0, 40);
 
-        // PUT SUMMON PEDESTALS IN SEPARATE AREAS TO REDUCE LAG FROM ARMOR STANDS
-
-        new SummonPedestal(new Location(Bukkit.getWorld("Hub"), 3468, 90, -204), UUID.fromString("72371adf-2e8d-4c92-a734-a93c8279deb9"), 2, BossType.WITHER);
-        new SummonPedestal(new Location(Bukkit.getWorld("Hub"), 3473, 90, -205), UUID.fromString("72371adf-2e8d-4c92-a734-a93c8279deb9"), 4, BossType.WITHER);
-        new SummonPedestal(new Location(Bukkit.getWorld("Hub"), 4479, 91, -1221), UUID.fromString("72371adf-2e8d-4c92-a734-a93c8279deb9"), 2, BossType.GOLEM);
-        new SummonPedestal(new Location(Bukkit.getWorld("Hub"), 4484, 91, -1222), UUID.fromString("72371adf-2e8d-4c92-a734-a93c8279deb9"), 4, BossType.GOLEM);
-        // new SummonPedestal(new Location(Bukkit.getWorld("Hub"), 1572, 93, -161), UUID.fromString("72371adf-2e8d-4c92-a734-a93c8279deb9"), 4, "The Wither");
-
         // items
         // ingredients
 
@@ -140,7 +133,7 @@ public class Main extends JavaPlugin {
         CustomIngredient breathOfLife = new CustomIngredient(Material.GREEN_DYE, "Breath of Life", Rarity.GODLIKE, null, true);
         CustomIngredient stormOfThunder = new CustomIngredient(Material.YELLOW_DYE, "Storm of Thunder", Rarity.GODLIKE, null, true);
         CustomIngredient libertyOfAir = new CustomIngredient(Material.LIGHT_GRAY_DYE, "Liberty of Air", Rarity.GODLIKE, null, true);
-        CustomIngredient destructionOfChaos = new CustomIngredient(Material.PURPLE_DYE, "Desctruction of Chaos", Rarity.GODLIKE, null, true);
+        CustomIngredient destructionOfChaos = new CustomIngredient(Material.PURPLE_DYE, "Destruction of Chaos", Rarity.GODLIKE, null, true);
 
         CustomIngredient gemstoneCatalyst = new CustomIngredient(Material.BOOK, "Gemstone Catalyst", Rarity.GODLIKE, null, false);
         CustomIngredient empoweredGemstoneCatalyst = new CustomIngredient(Material.ENCHANTED_BOOK, "Empowered Gemstone Catalyst", Rarity.GODLIKE, new CustomItemStack[]{
@@ -476,7 +469,7 @@ public class Main extends JavaPlugin {
                 null, new CustomItemStack(enchantedStick, 32), new CustomItemStack(enchantedString, 32),
                 new CustomItemStack(enchantedStick, 32), new CustomItemStack(zephyrBow, 1), new CustomItemStack(airCore, 1),
                 null, new CustomItemStack(enchantedStick, 32), new CustomItemStack(enchantedString, 32)
-        }, List.of(Element.NEUTRAL, Element.AIR), List.of(50, 80), List.of(75, 120), Map.of(ItemAttribute.AIRDEF, 20, ItemAttribute.AIRPERCENT, 10), "An incredibly strong and detructive tempest.", 20);
+        }, List.of(Element.NEUTRAL, Element.AIR), List.of(50, 80), List.of(75, 120), Map.of(ItemAttribute.AIRDEF, 20, ItemAttribute.AIRPERCENT, 10), "An incredibly strong and destructive tempest.", 20);
 
         CustomBow disarray = new CustomBow(Material.BOW, "Disarray", Rarity.RARE, new CustomItemStack[]{
                 null, new CustomItemStack(enchantedStick, 32), new CustomItemStack(enchantedString, 32),
@@ -728,7 +721,7 @@ public class Main extends JavaPlugin {
                 null, new CustomItemStack(elementalNexus), new CustomItemStack(reinforcedWeb, 32)
         }, 5, List.of(Element.FIRE, Element.WATER, Element.EARTH, Element.CHAOS, Element.NEUTRAL), List.of(1000, 750, 1000, 5000, 5000), List.of(1500, 1250, 1500, 5000, 10000),
                 Map.of(ItemAttribute.FIREPERCENT, 25, ItemAttribute.WATERPERCENT, 25, ItemAttribute.EARTHPERCENT, 25, ItemAttribute.THUNDERPERCENT, 25, ItemAttribute.AIRPERCENT, 25, ItemAttribute.CHAOSPERCENT, 25), "", 99);
-        Eidolon apothesosis = new Eidolon("Eidolon", Rarity.TRINITY, new CustomItemStack[]{
+        Eidolon eidolon = new Eidolon("Eidolon", Rarity.TRINITY, new CustomItemStack[]{
                 null, new CustomItemStack(demonicStick), new CustomItemStack(demonicWeb),
                 new CustomItemStack(demonicStick), new CustomItemStack(apollo), new CustomItemStack(activeDemonicEssence),
                 null, new CustomItemStack(demonicStick), new CustomItemStack(demonicWeb)
@@ -747,6 +740,10 @@ public class Main extends JavaPlugin {
         CustomBow inaurate = new CustomBow(Material.BOW, "Inaurate", Rarity.RARE, null, List.of(Element.NEUTRAL, Element.THUNDER), List.of(30, 1), List.of(50, 150), Map.of(ItemAttribute.THUNDERPERCENT, 10, ItemAttribute.THUNDERDEF, 10), "", 12);
         CustomSword iridescent = new CustomSword(Material.NETHERITE_SWORD, "Iridescent", Rarity.GODLIKE, null, List.of(Element.CHAOS, Element.AIR, Element.THUNDER, Element.EARTH, Element.WATER, Element.FIRE), List.of(800, 700, 300, 1200, 1000, 900), List.of(2000, 1500, 3000, 1300, 1300, 1400), Map.of(ItemAttribute.ALLPERCENT, 85, ItemAttribute.ALLDEF, 250, ItemAttribute.XPBONUS, 50, ItemAttribute.LOOTBONUS, 50), "", 90);
         CustomBow meniscus = new CustomBow(Material.BOW, "Meniscus", Rarity.EPIC, null, List.of(Element.AIR, Element.WATER), List.of(200, 250), List.of(250, 300), Map.of(ItemAttribute.AIRPERCENT, 25, ItemAttribute.WATERPERCENT, 25), "", 23);
+        CustomSword shiver = new CustomSword(Material.IRON_SWORD, "Shiver", Rarity.RARE, null, List.of(Element.AIR, Element.WATER), List.of(30, 40), List.of(50, 60), Map.of(ItemAttribute.WATERDEF, 25), "", 17);
+
+        CustomBow prismaticDark = new CustomBow(Material.BOW, "Prismatic Dark", Rarity.LEGENDARY, null, List.of(Element.FIRE, Element.WATER, Element.EARTH, Element.THUNDER, Element.AIR, Element.CHAOS, Element.NEUTRAL), List.of(100, 100, 100, 10, 100, 200, 50), List.of(200, 250, 150, 300, 200, 230, 100), Map.of(ItemAttribute.ALLPERCENT, 20, ItemAttribute.ALLDEF, 100, ItemAttribute.XPBONUS, 25, ItemAttribute.LOOTBONUS, 10), "", 33);
+
 
         // gemstone items
         CustomSword sapphireBlade = new CustomSword(Material.DIAMOND_SWORD, "Sapphire Blade", Rarity.RARE, null, List.of(Element.WATER, Element.NEUTRAL), List.of(10, 30), List.of(25, 40), Map.of(ItemAttribute.WATERPERCENT, 15, ItemAttribute.WATERDEF, 30, ItemAttribute.LIFESTEAL, 10, ItemAttribute.HEALTH, 30), "", 15);
@@ -793,7 +790,7 @@ public class Main extends JavaPlugin {
         CustomArmor galvanic = new CustomArmor(Material.IRON_HELMET, "Galvanic", Rarity.EPIC, Map.of(ItemAttribute.HEALTH, 250, ItemAttribute.THUNDERDEF, 10, ItemAttribute.THUNDERPERCENT, 30, ItemAttribute.LOOTBONUS, 10), "", 26);
         CustomArmor stimulation = new CustomArmor(Material.IRON_CHESTPLATE, "Stimulation", Rarity.EPIC, Map.of(ItemAttribute.HEALTH, 100, ItemAttribute.THUNDERPERCENT, 50, ItemAttribute.LOOTBONUS, 20), "", 28);
         CustomArmor dynamo = new CustomArmor(Material.DIAMOND_LEGGINGS, "Dynamo", Rarity.LEGENDARY, Map.of(ItemAttribute.HEALTH, 700, ItemAttribute.THUNDERDEF, 30, ItemAttribute.THUNDERPERCENT, 80, ItemAttribute.LOOTBONUS, 40), "", 49);
-        CustomArmor generator = new CustomArmor(Material.GOLDEN_LEGGINGS, "Generator", Rarity.UNCOMMON, Map.of(ItemAttribute.HEALTH, 20, ItemAttribute.THUNDERDEF, 10, ItemAttribute.THUNDERPERCENT, 10, ItemAttribute.LOOTBONUS, 10), "", 4);
+        CustomArmor generator = new CustomArmor(Material.GOLDEN_BOOTS, "Generator", Rarity.UNCOMMON, Map.of(ItemAttribute.HEALTH, 20, ItemAttribute.THUNDERDEF, 10, ItemAttribute.THUNDERPERCENT, 10, ItemAttribute.LOOTBONUS, 10), "", 4);
 
         CustomArmor elevation = new CustomArmor(Material.IRON_HELMET, "Elevation", Rarity.RARE, Map.of(ItemAttribute.HEALTH, 100, ItemAttribute.AIRDEF, 10, ItemAttribute.AIRPERCENT, 25, ItemAttribute.LOOTBONUS, 5), "", 15);
         CustomArmor ascension = new CustomArmor(Material.DIAMOND_CHESTPLATE, "Ascension", Rarity.LEGENDARY, Map.of(ItemAttribute.HEALTH, 500, ItemAttribute.AIRDEF, 50, ItemAttribute.AIRPERCENT, 85, ItemAttribute.LOOTBONUS, 15), "", 45);
@@ -823,7 +820,12 @@ public class Main extends JavaPlugin {
 
         CustomArmor compassion = new CustomArmor(Material.DIAMOND_BOOTS, "Compassion", Rarity.LEGENDARY, Map.of(ItemAttribute.HEALTH, 2000, ItemAttribute.FIREDEF, 750, ItemAttribute.WATERDEF, 750, ItemAttribute.EARTHDEF, 750, ItemAttribute.AIRDEF, 750, ItemAttribute.ABILITYREGEN, 5), "", 82);
 
-        CustomArmor guidelight = new CustomArmor(Material.NETHERITE_HELMET, "Guidelight", Rarity.GODLIKE, Map.of(ItemAttribute.HEALTH, 3000, ItemAttribute.ALLDEF, 200, ItemAttribute.ALLPERCENT, 1000, ItemAttribute.AIRPERCENT, 500, ItemAttribute.AIRDEF, 500, ItemAttribute.LIFESTEAL, 30, ItemAttribute.LOOTBONUS, 100, ItemAttribute.XPBONUS, 100, ItemAttribute.ABILITYREGEN, 5), "", 90);
+        // big bois
+        CustomArmor guidelight = new CustomArmor(Material.NETHERITE_HELMET, "Guidelight", Rarity.GODLIKE, Map.of(ItemAttribute.HEALTH, 3000, ItemAttribute.ALLDEF, 200, ItemAttribute.ALLPERCENT, 1000, ItemAttribute.AIRPERCENT, 500, ItemAttribute.AIRDEF, 500, ItemAttribute.LIFESTEAL, 30, ItemAttribute.LOOTBONUS, 100, ItemAttribute.XPBONUS, 100, ItemAttribute.ABILITYREGEN, 5), "Illuminate your journey.", 90);
+        CustomArmor ethereal = new CustomArmor(Material.NETHERITE_CHESTPLATE, "Ethereal", Rarity.GODLIKE, Map.of(ItemAttribute.HEALTH, 2000, ItemAttribute.WATERDEF, 600, ItemAttribute.CHAOSDEF, 600, ItemAttribute.WATERPERCENT, 1500, ItemAttribute.CHAOSPERCENT, 1500, ItemAttribute.ALLPERCENT, 200, ItemAttribute.LIFESTEAL, 50, ItemAttribute.LOOTBONUS, 300, ItemAttribute.XPBONUS, -5, ItemAttribute.ABILITYREGEN, 2), "A sense of perfection fit to assist you in your next task.", 92);
+        CustomArmor providence = new CustomArmor(Material.NETHERITE_LEGGINGS, "Providence", Rarity.GODLIKE, Map.of(ItemAttribute.HEALTH, 3000, ItemAttribute.ALLDEF, 300, ItemAttribute.EARTHDEF, 1500, ItemAttribute.AIRDEF, 1500, ItemAttribute.EARTHPERCENT, 150, ItemAttribute.AIRPERCENT, 150, ItemAttribute.LIFESTEAL, 10, ItemAttribute.XPBONUS, 200, ItemAttribute.LOOTBONUS, 200), "The divinity above consign their aid.", 87);
+        CustomArmor wrath = new CustomArmor(Material.NETHERITE_BOOTS, "Wrath", Rarity.GODLIKE, Map.of(ItemAttribute.HEALTH, 500, ItemAttribute.ALLDEF, 100, ItemAttribute.THUNDERDEF, -1099, ItemAttribute.FIREDEF, -1099, ItemAttribute.THUNDERPERCENT, 9999, ItemAttribute.FIREPERCENT, 2000, ItemAttribute.LIFESTEAL, 75), "Your fury unleashed.", 96);
+
         CustomArmor pathogenesis = new CustomArmor(Material.DIAMOND_BOOTS, "Pathogenesis", Rarity.LEGENDARY, Map.of(ItemAttribute.HEALTH, 200, ItemAttribute.CHAOSPERCENT, 50, ItemAttribute.XPBONUS, 20), "", 23);
         CustomArmor disillude = new CustomArmor(Material.DIAMOND_BOOTS, "Disillude", Rarity.LEGENDARY, Map.of(ItemAttribute.HEALTH, 300, ItemAttribute.ALLDEF, 100, ItemAttribute.LOOTBONUS, 35, ItemAttribute.XPBONUS, 25), "", 33);
         CustomArmor clarity = new CustomArmor(Material.DIAMOND_CHESTPLATE, "Clarity", Rarity.LEGENDARY, Map.of(ItemAttribute.HEALTH, 750, ItemAttribute.ALLDEF, 100, ItemAttribute.ALLPERCENT, 35, ItemAttribute.LOOTBONUS, 50, ItemAttribute.XPBONUS, 40), "", 58);
@@ -873,7 +875,6 @@ public class Main extends JavaPlugin {
         CustomBaseMob spider100 = new CustomBaseMob("Spider", EntityType.SPIDER, List.of(Element.FIRE), 1000, 100, 1000, 50000, List.of(l100SpiderLoot), true, 1){};
         CustomBaseMob spider0 = new CustomBaseMob("Spider", EntityType.SPIDER, List.of(Element.FIRE), 10000, 0, 0, 100000, null, true, 1){};
         CustomBaseMob wither100 = new CustomBaseMob("Wither", EntityType.WITHER, List.of(Element.FIRE), 100, 100, 50000, 1000000000, null, true, 1){};
-        CustomBaseMob witherBoss = new CustomBaseMob("The Wither", BossType.WITHER, List.of(Element.FIRE, Element.CHAOS), 1000, 75, 1000, 1000000, List.of(l75TheWitherLoot), true, 100000){};
         CustomBaseMob elemental1 = new CustomBaseMob("Elemental", EntityType.ZOMBIE, List.of(Element.FIRE, Element.WATER, Element.EARTH, Element.THUNDER, Element.AIR, Element.CHAOS), 50, 1, 0, 100, null, true, 1){};
         CustomBaseMob nadirTester = new CustomBaseMob("Nadir Tester", EntityType.WITHER, List.of(Element.FIRE), 100, 100, 1000000, 2147483647, null, true, 1){};
         CustomBaseMob testDummy0 = new CustomBaseMob("Test Dummy", EntityType.WITHER, List.of(), 1000, 0, 0, 1000000000, null, true, 1){};
@@ -888,55 +889,13 @@ public class Main extends JavaPlugin {
         CustomBaseMob witherSkeleton = new CustomBaseMob("Wither Skeleton", EntityType.WITHER_SKELETON, List.of(Element.FIRE), 50, 10, 100, 750, List.of(l10WitherSkeletonLoot, l10FireLoot), true, 24){};
         CustomBaseMob hoglin = new CustomBaseMob("Hoglin", EntityType.HOGLIN, List.of(Element.FIRE), 50, 10, 100, 750, List.of(l10HoglinLoot, l10FireLoot), true, 18){};
         CustomBaseMob ghast = new CustomBaseMob("Ghast", EntityType.GHAST, List.of(Element.FIRE), 40, 15, 100, 1500, List.of(l15GhastLoot, l15FireLoot), true, 25){};
-        CustomBaseMob flamingGolem = new CustomBaseMob("The Flaming Golem", BossType.GOLEM, List.of(Element.FIRE), 200, 20, 500, 10000, List.of(l20FlamingGolemLoot), true, 1500){};
-        CustomBaseMob leadMinion = new CustomBaseMob("The Wither's Lead Minion", BossType.LEADMINION, List.of(Element.FIRE, Element.CHAOS), 200, 35, 500, 75000, List.of(l35LeadMinionLoot), true, 15000){};
-        CustomBaseMob witherMinion = new CustomBaseMob("The Wither's Minion", BossType.WITHERMINION, List.of(Element.FIRE, Element.CHAOS), 200, 35, 500, 50000, List.of(l35WitherMinionLoot), true, 5000){};
-
         // magma cube - volcanic sludge, level 50
 
         // boss stuff
         CustomBaseMob enigmaVex = new CustomBaseMob("Vex?", EntityType.VEX, List.of(Element.CHAOS), 250, 40, 100, 10000, null, true, 1){};
 
-        CustomBaseMob spellTester = new CustomBaseMob("Spell Tester", BossType.SPELLTESTER, List.of(Element.FIRE, Element.CHAOS), 200, 100, 500, 50000, null, true, 1){};
-
-        CustomBaseMob drakomyr = new CustomBaseMob("Drakomyr", BossType.DRAKOMYR, List.of(Element.FIRE, Element.CHAOS), 1500, 80, 10000, 50000000, null, true, 1){};
-
-        ItemStack skull = new ItemStack(Material.PLAYER_HEAD);
-        SkullMeta meta = (SkullMeta) skull.getItemMeta();
-        meta.setOwningPlayer(Bukkit.getOfflinePlayer("TrustMeNotAnAlt"));
-        skull.setItemMeta(meta);
-
-        ItemStack drakomyrChestplate = new ItemStack(Material.LEATHER_CHESTPLATE);
-        LeatherArmorMeta meta1 = (LeatherArmorMeta) drakomyrChestplate.getItemMeta();
-        meta1.setColor(Color.fromRGB(255, 0, 0));
-        drakomyrChestplate.setItemMeta(meta1);
-
-        ItemStack drakomyrLeggings = new ItemStack(Material.LEATHER_LEGGINGS);
-        LeatherArmorMeta meta2 = (LeatherArmorMeta) drakomyrLeggings.getItemMeta();
-        meta2.setColor(Color.fromRGB(255, 0, 0));
-        drakomyrLeggings.setItemMeta(meta2);
-
-        ItemStack drakomyrBoots = new ItemStack(Material.LEATHER_BOOTS);
-        LeatherArmorMeta meta3 = (LeatherArmorMeta) drakomyrBoots.getItemMeta();
-        meta3.setColor(Color.fromRGB(255, 0, 0));
-        drakomyrBoots.setItemMeta(meta3);
-
-        drakomyr.setEquipment(skull, drakomyrChestplate, drakomyrLeggings, drakomyrBoots);
-
         for (CustomItem item : CustomItem.CUSTOM_ITEMS.values()) {
             item.initialize();
-        }
-
-        // boss summon item initialization
-        for (BossType boss : BossType.values()) {
-            switch (boss) {
-                case WITHER:
-                    boss.setItemsToSummon(List.of(new CustomItemStack(soulSand, 4), new CustomItemStack(witherRose, 3)));
-                    break;
-                case GOLEM:
-                    boss.setItemsToSummon(List.of(new CustomItemStack(flamingPumpkin, 3), new CustomItemStack(enchantedIron, 4)));
-                    break;
-            }
         }
 
         // spawner initialization
@@ -947,7 +906,6 @@ public class Main extends JavaPlugin {
         OrderCreator orderCreator = new OrderCreator();
         Bukkit.getScheduler().runTask(this, orderCreator::initializeOrders);
 
-        /**
         CustomItemRenderer renderer = new CustomItemRenderer();
         try {
             for (CustomItem item : CustomItem.CUSTOM_ITEMS.values()) {
@@ -956,15 +914,13 @@ public class Main extends JavaPlugin {
                         continue;
                     }
                 }
-                if (item instanceof CustomAttributableItem) {
-                    CustomAttributableItem attributableItem = (CustomAttributableItem) item;
+                if (item instanceof CustomAttributableItem attributableItem) {
                     renderer.drawItem(attributableItem);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-         */
 
         instance = this;
     }

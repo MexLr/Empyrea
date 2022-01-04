@@ -10,6 +10,16 @@ import java.util.List;
 
 public enum Spell {
 
+    /**
+     * Spell ideas:
+     * Summon undead mobs, like they rise out of the ground or something
+     * Send a wave forward, damaging players in its path
+     * Healing spell
+     * Cloning, lunatic cultist style
+     *
+     *
+     */
+
     CHAOSLIGHTNING("Chaos Lightning", 1, ChaosLightning.class),
     CHAOSFIRERAIN("Chaos Fire Rain", 2, ChaosFireRain.class),
     WEAKCHAOSLIGHTNING("Weak Chaos Lightning", 3, WeakChaosLightning.class),

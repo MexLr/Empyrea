@@ -14,43 +14,39 @@ public class SpawnerItem {
 
     private String name;
     private List<String> lore;
-    private CustomMob spawnType;
-    private double interval;
-    private int level;
+    private final CustomMob spawnType;
+    private final double interval;
+    private final int level;
 
     private ItemStack item;
 
     public SpawnerItem(ItemStack itemStack) {
         ItemMeta itemMeta = itemStack.getItemMeta();
+        assert itemMeta != null;
         List<String> lore = itemMeta.getLore();
 
-        CustomMob type = CustomMob.fromName("1Spider");
-        double interval = 5;
-
-        Bukkit.getPlayer("MexLr").sendMessage("" + lore.size());
+        CustomMob type;
+        double interval;
 
         // getting the level
+        assert lore != null;
         String mobLevel = ChatColor.stripColor(lore.get(0).split(" ")[3]);
 
         // getting the mob's name
-        String mobName = "";
+        StringBuilder mobName = new StringBuilder();
         // all of the strings after the level, in an array
         String[] mobNameString = lore.get(0).split(mobLevel)[1].trim().split(" ");
         for (String string : mobNameString) {
-            mobName += " " + string;
+            mobName.append(" ").append(string);
         }
         // trim the mobName, as there will be a space at the very beginning of the string
-        mobName = mobName.trim();
-        StringBuilder str = new StringBuilder();
-        str.append(mobLevel).append(mobName);
-        Bukkit.getPlayer("MexLr").sendMessage(str.toString());
-        type = CustomMob.fromName(ChatColor.stripColor(str.toString()));
+        mobName = new StringBuilder(mobName.toString().trim());
+        type = CustomMob.fromName(ChatColor.stripColor(mobLevel + mobName));
         interval = Double.parseDouble(ChatColor.stripColor(lore.get(1).split(" ")[1]));
 
         // get the level of the spawner (the last number in the name)
-        int level = Integer.parseInt(ChatColor.stripColor(itemMeta.getDisplayName().split(" ")[itemMeta.getDisplayName().split(" ").length - 1]));
 
-        this.level = level;
+        this.level = Integer.parseInt(ChatColor.stripColor(itemMeta.getDisplayName().split(" ")[itemMeta.getDisplayName().split(" ").length - 1]));
         this.spawnType = type;
         this.interval = interval;
     }
@@ -99,11 +95,12 @@ public class SpawnerItem {
      */
     public ItemStack toItemStack() {
         item = new ItemStack(Material.SPAWNER);
-        lore = new ArrayList<String>();
+        lore = new ArrayList<>();
         ItemMeta im = item.getItemMeta();
 
         name = "§9Lv. " + this.spawnType.getLevel() + " " + this.spawnType.getName() + " Spawner " + "§b" + this.level;
 
+        assert im != null;
         im.setDisplayName(name);
 
         lore.add("§3Spawns a " + "§6Lv. " + this.spawnType.getLevel() + " " + this.spawnType.getName());
@@ -122,11 +119,12 @@ public class SpawnerItem {
      */
     public ItemStack toItemStack(int level) {
         item = new ItemStack(Material.SPAWNER);
-        lore = new ArrayList<String>();
+        lore = new ArrayList<>();
         ItemMeta im = item.getItemMeta();
 
         name = "§9Lv. " + this.spawnType.getLevel() + " " + this.spawnType.getName() + " Spawner " + "§b" + level;
 
+        assert im != null;
         im.setDisplayName(name);
 
         lore.add("§3Spawns a " + "§6Lv. " + this.spawnType.getLevel() + " " + this.spawnType.getName());

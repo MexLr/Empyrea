@@ -8,7 +8,6 @@ import org.bukkit.inventory.ItemStack;
 import org.example.ataraxiawarmup.Main;
 import org.example.ataraxiawarmup.item.customitem.Element;
 import org.example.ataraxiawarmup.item.customitem.ItemAttribute;
-import org.example.ataraxiawarmup.mob.boss.BossType;
 import org.example.ataraxiawarmup.player.CustomPlayer;
 
 import java.util.*;
@@ -21,7 +20,6 @@ public abstract class CustomMob implements Cloneable {
 
     private final String name;
     private final EntityType entityType;
-    private BossType bossType;
     private final List<Element> elements;
     private final int damage;
     private final int level;
@@ -46,11 +44,6 @@ public abstract class CustomMob implements Cloneable {
 
     public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, double experience) {
         this(name, entityType, elements, damage, level, defense, maxHealth, lootTables, false, experience);
-    }
-
-    public CustomMob(String name, BossType bossType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template, double experience) {
-        this(name, bossType.getEntityType(), elements, damage, level, defense, maxHealth, lootTables, template, experience);
-        this.bossType = bossType;
     }
 
     public CustomMob(String name, EntityType entityType, List<Element> elements, int damage, int level, int defense, int maxHealth, List<CustomLootTable> lootTables, boolean template, double experience) {
@@ -90,11 +83,7 @@ public abstract class CustomMob implements Cloneable {
      */
     public void spawn(Location location) {
         Entity spawnedEntity;
-        if (bossType != null) {
-            spawnedEntity = bossType.spawn(location);
-        } else {
-            spawnedEntity = location.getWorld().spawnEntity(location, entityType);
-        }
+        spawnedEntity = location.getWorld().spawnEntity(location, entityType);
 
         spawnedEntity.setCustomName(getCustomName());
         spawnedEntity.setCustomNameVisible(true);
@@ -471,26 +460,6 @@ public abstract class CustomMob implements Cloneable {
      * @return - If the entity is invunerable
      */
     public boolean isInvulnerable() {
-        if (this.bossType != null) {
-            switch (this.bossType) {
-                case LEADMINION:
-                    List<Entity> nearbyEntities = this.entity.getNearbyEntities(20, 20, 20);
-                    for (Entity entity : nearbyEntities) {
-                        if (entity instanceof WitherSkeleton) {
-                            return true;
-                        }
-                    }
-                    return false;
-                case WITHER:
-                    nearbyEntities = this.entity.getNearbyEntities(100, 20, 100);
-                    for (Entity entity : nearbyEntities) {
-                        if (entity instanceof WitherSkeleton) {
-                            return true;
-                        }
-                    }
-                    return false;
-            }
-        }
         return false;
     }
 
